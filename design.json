@@ -1,0 +1,606 @@
+{
+  "meta": {
+    "system": "LuckyJob Design System",
+    "shortName": "LuckyJob DS",
+    "version": "0.1.0",
+    "created": "2025-11-13",
+    "source": "Creative direction derived from provided UI screenshots",
+    "intendedPlatforms": [
+      "web",
+      "mobile-web"
+    ]
+  },
+  "brand": {
+    "essence": [
+      "Optimistic",
+      "Modern",
+      "Trustworthy",
+      "Soft but professional"
+    ],
+    "voice": {
+      "tone": [
+        "encouraging",
+        "clear",
+        "concise"
+      ],
+      "do": [
+        "Prefer action-oriented headlines (e.g., Recommended jobs).",
+        "Use concise, scannable labels and tags.",
+        "Favor positive, empowering microcopy."
+      ],
+      "dont": [
+        "Avoid jargon-heavy HR language.",
+        "Avoid alarmist tone in notifications."
+      ]
+    }
+  },
+  "foundations": {
+    "colors": {
+      "referencePalette": {
+        "lilac": "#e3dbfa",
+        "pink": "#fbe2f4",
+        "peach": "#ffe1cc",
+        "mint": "#d4f6ed"
+      },
+      "neutrals": {
+        "0": "#FFFFFF",
+        "10": "#F8FAFC",
+        "20": "#F2F4F7",
+        "30": "#E5E7EB",
+        "40": "#D0D5DD",
+        "50": "#98A2B3",
+        "60": "#667085",
+        "70": "#475467",
+        "80": "#344054",
+        "90": "#1F2937",
+        "100": "#0B1220"
+      },
+      "brand": {
+        "ink": "#0E1116",
+        "ink-contrast": "#0B1220",
+        "cta": "#48A8FF",
+        "cta-contrast": "#0056B3"
+      },
+      "semantic": {
+        "success": "#16A34A",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "info": "#3B82F6"
+      },
+      "themes": {
+        "light": {
+          "bg.app": "{colors.neutrals.10}",
+          "bg.surface": "{colors.neutrals.0}",
+          "bg.sunken": "{colors.neutrals.20}",
+          "text.primary": "{colors.neutrals.100}",
+          "text.secondary": "{colors.neutrals.70}",
+          "text.muted": "{colors.neutrals.60}",
+          "border.subtle": "rgba(2, 6, 23, 0.06)",
+          "border.default": "rgba(2, 6, 23, 0.12)",
+          "control.fill": "{colors.neutrals.0}",
+          "control.fill-muted": "{colors.neutrals.20}",
+          "accent.card-1": "{colors.referencePalette.peach}",
+          "accent.card-2": "{colors.referencePalette.mint}",
+          "accent.card-3": "{colors.referencePalette.lilac}",
+          "accent.card-4": "#E6F3FF",
+          "cta.solid": "{colors.brand.cta}",
+          "cta.on-cta": "{colors.neutrals.0}",
+          "chip.bg": "rgba(2,6,23,0.06)",
+          "chip.text": "{colors.neutrals.80}"
+        },
+        "dark": {
+          "bg.app": "#0A0F1A",
+          "bg.surface": "#0E1422",
+          "bg.sunken": "#0B1220",
+          "text.primary": "#E5E7EB",
+          "text.secondary": "#BAC1CC",
+          "text.muted": "#8E97A8",
+          "border.subtle": "rgba(255,255,255,0.06)",
+          "border.default": "rgba(255,255,255,0.12)",
+          "control.fill": "#161B2A",
+          "control.fill-muted": "#121726",
+          "accent.card-1": "#2A2220",
+          "accent.card-2": "#1E2A26",
+          "accent.card-3": "#232238",
+          "accent.card-4": "#1F2733",
+          "cta.solid": "{colors.brand.cta}",
+          "cta.on-cta": "{colors.neutrals.0}",
+          "chip.bg": "rgba(255,255,255,0.08)",
+          "chip.text": "#E5E7EB"
+        }
+      }
+    },
+    "typography": {
+      "fonts": {
+        "display": "Orkney, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif",
+        "text": "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+        "numeric": "Orkney, Inter, ui-sans-serif, system-ui, Arial, sans-serif"
+      },
+      "weights": {
+        "regular": 400,
+        "medium": 500,
+        "semibold": 600,
+        "bold": 700
+      },
+      "scale": {
+        "display-2xl": { "size": 56, "line": 64, "weight": "bold", "tracking": -0.5 },
+        "display-xl": { "size": 48, "line": 56, "weight": "bold", "tracking": -0.4 },
+        "h1": { "size": 40, "line": 48, "weight": "bold", "tracking": -0.2 },
+        "h2": { "size": 32, "line": 40, "weight": "bold", "tracking": -0.1 },
+        "h3": { "size": 24, "line": 32, "weight": "semibold", "tracking": 0 },
+        "h4": { "size": 20, "line": 28, "weight": "semibold", "tracking": 0 },
+        "subtitle": { "size": 18, "line": 28, "weight": "medium", "tracking": 0 },
+        "body": { "size": 16, "line": 24, "weight": "regular", "tracking": 0 },
+        "body-sm": { "size": 14, "line": 20, "weight": "regular", "tracking": 0 },
+        "micro": { "size": 12, "line": 16, "weight": "semibold", "tracking": 0.2 }
+      },
+      "usage": {
+        "pageTitle": "display-xl",
+        "sectionTitle": "h2",
+        "cardTitle": "h3",
+        "label": "micro",
+        "tag": "micro",
+        "price": "h4"
+      },
+      "numericFeatures": {
+        "price": { "fontFamily": "numeric", "variant": "tabular-nums" }
+      }
+    },
+    "spacing": {
+      "scale": [0, 2, 4, 6, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64],
+      "gridGutter": 24,
+      "pagePadding": { "mobile": 16, "tablet": 24, "desktop": 32 },
+      "cardPadding": { "sm": 16, "md": 20, "lg": 24 }
+    },
+    "radii": {
+      "xs": 6,
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 20,
+      "xxl": 24,
+      "card": 24,
+      "pill": 999
+    },
+    "borders": {
+      "widths": { "hairline": 1, "thin": 1, "regular": 2 },
+      "focusRing": { "width": 2, "color.light": "#48A8FF", "color.dark": "#48A8FF" }
+    },
+    "shadows": {
+      "xs": "0 1px 2px rgba(2,6,23,0.05)",
+      "sm": "0 1px 3px rgba(2,6,23,0.08), 0 1px 2px rgba(2,6,23,0.06)",
+      "md": "0 4px 12px rgba(2,6,23,0.08)",
+      "lg": "0 10px 24px rgba(2,6,23,0.10)",
+      "xl": "0 24px 48px rgba(2,6,23,0.14)"
+    },
+    "elevation": {
+      "surface": "sm",
+      "card": "md",
+      "popover": "lg",
+      "modal": "xl"
+    },
+    "layout": {
+      "grid": { "columns": 12, "maxWidth": 1280, "gutter": 24 },
+      "breakpoints": {
+        "xs": 360,
+        "sm": 640,
+        "md": 768,
+        "lg": 1024,
+        "xl": 1280,
+        "2xl": 1536
+      }
+    },
+    "iconography": {
+      "style": "rounded-geometric",
+      "stroke": 1.5,
+      "sizes": { "sm": 16, "md": 20, "lg": 24, "xl": 32 }
+    },
+    "motion": {
+      "durations": { "fast": 120, "base": 180, "snappy": 220, "moderate": 260 },
+      "easing": {
+        "standard": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "emphasized": "cubic-bezier(0.2, 1, 0.2, 1)"
+      },
+      "use": {
+        "micro": "fast + standard for chips, buttons, toggles",
+        "macro": "snappy + emphasized for dialogs and toasts",
+        "slider": "base + standard"
+      }
+    },
+    "accessibility": {
+      "contrastMinimum": "WCAG AA (4.5:1 for body, 3:1 for large type)",
+      "targetMin": 44,
+      "focusVisible": true,
+      "focusStyle": "2px ring in brand cta color on both themes",
+      "reduceMotionSupport": true
+    }
+  },
+  "components": [
+    {
+      "name": "AppShell",
+      "role": "Primary application frame with top navigation and filter toolbar",
+      "anatomy": ["TopBar", "NavTabs", "Toolbar", "Content", "Footer"],
+      "variants": ["default", "dark-hero"],
+      "tokens": {
+        "topbar.height": 72,
+        "toolbar.height": 64,
+        "surface": "bg.surface",
+        "divider": "border.subtle",
+        "shadow": "sm"
+      },
+      "a11y": [
+        "Landmarks: header, nav, main, footer",
+        "Visible focus for all interactive elements"
+      ],
+      "usage": "Top bar is dark with high contrast icons; toolbar hosts filters and salary slider."
+    },
+    {
+      "name": "TopNav",
+      "role": "Primary navigation across app sections",
+      "anatomy": ["Logo", "NavItem[]", "UserArea"],
+      "variants": ["tabs", "underline-active"],
+      "sizes": ["md"],
+      "tokens": {
+        "active.indicator": { "height": 2, "color": "text.primary" },
+        "item.gap": 16,
+        "item.paddingX": 12,
+        "item.paddingY": 10
+      },
+      "states": ["default", "hover", "active", "disabled"],
+      "a11y": ["Use <nav> with aria-current on active item"]
+    },
+    {
+      "name": "SearchField",
+      "role": "Keyword search input",
+      "anatomy": ["Container", "LeadingIcon", "Input", "ClearButton"],
+      "variants": ["default", "toolbar"],
+      "sizes": ["md"],
+      "tokens": {
+        "height": 40,
+        "radius": "lg",
+        "bg": "control.fill",
+        "border": "border.subtle",
+        "placeholder": "text.muted"
+      },
+      "states": ["default", "hover", "focus", "disabled"],
+      "a11y": ["Associate with label; provide clear button with aria-label"]
+    },
+    {
+      "name": "FilterSelect",
+      "role": "Compact select with icon label used in toolbar",
+      "anatomy": ["Button", "LeadingIcon", "Label", "Chevron", "Menu"],
+      "variants": ["solid", "ghost"],
+      "sizes": ["md"],
+      "tokens": {
+        "height": 40,
+        "paddingX": 14,
+        "radius": "lg",
+        "bg": "control.fill",
+        "border": "border.subtle",
+        "text": "text.primary"
+      },
+      "states": ["default", "hover", "focus", "open", "disabled"],
+      "a11y": ["Use native <select> on mobile if possible; ensure keyboard nav"]
+    },
+    {
+      "name": "RangeSlider",
+      "role": "Salary range selection",
+      "anatomy": ["Track", "Range", "ThumbA", "ThumbB", "Labels"],
+      "variants": ["toolbar"],
+      "sizes": ["md"],
+      "tokens": {
+        "track.height": 4,
+        "track.bg": "chip.bg",
+        "range.bg": "cta.solid",
+        "thumb.size": 16,
+        "thumb.color": "cta.solid",
+        "thumb.stroke": "bg.surface"
+      },
+      "states": ["default", "hover", "drag", "disabled"],
+      "a11y": ["Provide value text; thumbs must be keyboard operable"]
+    },
+    {
+      "name": "Button",
+      "role": "Primary and secondary actions",
+      "anatomy": ["Container", "Icon(optional)", "Label"],
+      "variants": ["primary", "secondary", "tertiary", "ghost", "danger"],
+      "sizes": ["sm", "md", "lg"],
+      "tokens": {
+        "radius": "pill",
+        "paddingX.sm": 12,
+        "paddingX.md": 16,
+        "paddingX.lg": 20,
+        "height.sm": 36,
+        "height.md": 40,
+        "height.lg": 44,
+        "primary.bg": "ink",
+        "primary.text": "bg.surface",
+        "secondary.bg": "cta.solid",
+        "secondary.text": "cta.on-cta"
+      },
+      "states": ["default", "hover", "active", "focus", "disabled"],
+      "a11y": ["Hit area >= 44px; focus ring visible on any theme"]
+    },
+    {
+      "name": "IconButton",
+      "role": "Bookmark / quick actions",
+      "anatomy": ["Container", "Icon"],
+      "variants": ["surface", "ghost"],
+      "sizes": ["xs", "sm", "md"],
+      "tokens": {
+        "radius": "pill",
+        "size.xs": 28,
+        "size.sm": 32,
+        "size.md": 36,
+        "bg": "control.fill",
+        "icon.color": "text.primary"
+      },
+      "states": ["default", "hover", "active", "pressed", "disabled"],
+      "a11y": ["Provide aria-pressed for toggle use cases like Bookmark"]
+    },
+    {
+      "name": "TagChip",
+      "role": "Attribute chip (e.g., Part time, Senior level)",
+      "anatomy": ["Container", "Label"],
+      "variants": ["neutral", "brand", "success", "warning"],
+      "sizes": ["sm"],
+      "tokens": {
+        "radius": "pill",
+        "paddingX": 10,
+        "height": 28,
+        "bg": "chip.bg",
+        "text": "chip.text"
+      },
+      "states": ["default", "hover", "selected", "disabled"]
+    },
+    {
+      "name": "CounterPill",
+      "role": "Rounded metric pill (e.g., 386)",
+      "anatomy": ["Container", "Number"],
+      "variants": ["neutral", "brand"],
+      "sizes": ["md"],
+      "tokens": {
+        "radius": "pill",
+        "paddingX": 10,
+        "height": 28,
+        "bg": "control.fill",
+        "text": "text.primary"
+      }
+    },
+    {
+      "name": "Card",
+      "role": "Generic surface container",
+      "anatomy": ["Container", "Header?", "Body", "Footer?"],
+      "variants": ["surface", "sunken", "accent"],
+      "sizes": ["md"],
+      "tokens": {
+        "radius": "card",
+        "padding": "cardPadding.md",
+        "bg": "bg.surface",
+        "shadow": "card",
+        "border": "border.subtle"
+      }
+    },
+    {
+      "name": "JobCard",
+      "role": "Prominent job listing card seen in grid",
+      "anatomy": [
+        "Container",
+        "MetaBar(date)",
+        "Company",
+        "Title",
+        "ChipGroup",
+        "PriceRow",
+        "LocationRow",
+        "ActionRow(Details button, Bookmark)"
+      ],
+      "variants": ["accent-peach", "accent-mint", "accent-lilac", "accent-blue"],
+      "sizes": ["md"],
+      "tokens": {
+        "radius": "card",
+        "padding": 20,
+        "bg.accent-1": "accent.card-1",
+        "bg.accent-2": "accent.card-2",
+        "bg.accent-3": "accent.card-3",
+        "bg.accent-4": "accent.card-4",
+        "title.type": "h3",
+        "company.type": "body-sm",
+        "price.type": "h4",
+        "shadow": "card"
+      },
+      "states": ["default", "hover", "focusWithin"],
+      "a11y": [
+        "Entire card should be keyboard-focusable if it acts as a link",
+        "Bookmark must be operable with keyboard and screen readers"
+      ]
+    },
+    {
+      "name": "GridList",
+      "role": "Responsive grid of JobCards",
+      "anatomy": ["Container", "Card[]"],
+      "variants": ["default"],
+      "sizes": ["responsive"],
+      "tokens": {
+        "gap": 24,
+        "columns.mobile": 1,
+        "columns.tablet": 2,
+        "columns.desktop": 3
+      }
+    },
+    {
+      "name": "SortControl",
+      "role": "Sort dropdown (e.g., Last updated)",
+      "anatomy": ["Label", "Button", "Menu"],
+      "variants": ["dropdown"],
+      "tokens": {
+        "bg": "control.fill",
+        "border": "border.subtle",
+        "radius": "lg"
+      }
+    },
+    {
+      "name": "SidebarFilters",
+      "role": "Facet filters column",
+      "anatomy": ["Heading", "FacetGroup[]", "Checkbox/Radio"],
+      "variants": ["sticky"],
+      "tokens": {
+        "width.desktop": 280,
+        "gap": 16
+      }
+    },
+    {
+      "name": "Checkbox",
+      "role": "Facet selection",
+      "anatomy": ["Box", "Checkmark", "Label"],
+      "variants": ["default"],
+      "sizes": ["md"],
+      "tokens": {
+        "size": 18,
+        "radius": "sm",
+        "bg": "control.fill",
+        "border": "border.default",
+        "accent": "cta.solid"
+      },
+      "states": ["unchecked", "checked", "indeterminate", "disabled"]
+    },
+    {
+      "name": "Radio",
+      "role": "Exclusive selection",
+      "anatomy": ["Outer", "Dot", "Label"],
+      "tokens": {
+        "size": 18,
+        "accent": "cta.solid",
+        "bg": "control.fill"
+      },
+      "states": ["unchecked", "checked", "disabled"]
+    },
+    {
+      "name": "Switch",
+      "role": "Binary toggle",
+      "anatomy": ["Track", "Thumb", "Label?"],
+      "tokens": {
+        "track.height": 24,
+        "track.width": 44,
+        "thumb.size": 20,
+        "accent": "cta.solid"
+      }
+    },
+    {
+      "name": "Input",
+      "role": "Text entry",
+      "anatomy": ["Container", "Prefix?", "Field", "Suffix?"],
+      "variants": ["default", "withIcon"],
+      "tokens": {
+        "height": 40,
+        "radius": "lg",
+        "bg": "control.fill",
+        "border": "border.subtle"
+      },
+      "states": ["default", "hover", "focus", "error", "disabled"]
+    },
+    {
+      "name": "Select",
+      "role": "Dropdown list",
+      "anatomy": ["Button", "Chevron", "Menu"],
+      "tokens": {
+        "height": 40,
+        "radius": "lg",
+        "bg": "control.fill"
+      }
+    },
+    {
+      "name": "Pagination",
+      "role": "Page navigation for long lists",
+      "anatomy": ["Prev", "Page[]", "Next"],
+      "variants": ["pill"],
+      "tokens": {
+        "radius": "pill",
+        "bg": "control.fill",
+        "active.bg": "ink",
+        "active.text": "bg.surface"
+      },
+      "a11y": ["aria-current on active page; labels for prev/next"]
+    },
+    {
+      "name": "Modal",
+      "role": "Blocking dialog",
+      "anatomy": ["Scrim", "Container", "Header", "Body", "Footer"],
+      "tokens": {
+        "scrim": "rgba(2,6,23,0.48)",
+        "radius": "xl",
+        "shadow": "modal",
+        "bg": "bg.surface"
+      },
+      "a11y": ["Trap focus; restore focus on close; aria-modal=true"]
+    },
+    {
+      "name": "Tooltip",
+      "role": "Contextual hint",
+      "anatomy": ["Bubble", "Arrow", "Text"],
+      "tokens": {
+        "bg": "ink",
+        "text": "bg.surface",
+        "radius": "sm",
+        "shadow": "sm"
+      }
+    },
+    {
+      "name": "Toast",
+      "role": "Transient confirmation and alerts",
+      "anatomy": ["Container", "Icon", "Text", "Close"],
+      "variants": ["success", "info", "warning", "error"],
+      "tokens": {
+        "radius": "lg",
+        "shadow": "lg",
+        "bg": "bg.surface"
+      }
+    },
+    {
+      "name": "Avatar",
+      "role": "User identity indicator",
+      "anatomy": ["Container", "Image", "Badge?"],
+      "tokens": {
+        "size.sm": 28,
+        "size.md": 32,
+        "size.lg": 40,
+        "radius": "pill"
+      }
+    },
+    {
+      "name": "BannerPromo",
+      "role": "Left column promotional card ('Get Your best profession…')",
+      "anatomy": ["Container", "Graphic", "Title", "CTA"],
+      "tokens": {
+        "radius": "card",
+        "bg": "ink",
+        "text": "bg.surface",
+        "cta.variant": "secondary"
+      }
+    },
+    {
+      "name": "EmptyState",
+      "role": "Fallback when no jobs match",
+      "anatomy": ["Illustration", "Title", "Body", "Actions?"],
+      "tokens": {
+        "text": "text.secondary",
+        "bg": "bg.surface"
+      }
+    }
+  ],
+  "contentGuidelines": {
+    "headings": "Use Orkney for headings; keep under ~8 words when possible.",
+    "buttons": "Verb-first labels (e.g., Details, Learn more). Avoid multi-line buttons.",
+    "chips": "Title case; max 2 words per chip.",
+    "prices": "Prefer per-hour notation with tabular numerals (e.g., $250/hr).",
+    "dates": "Day Mon, YYYY (e.g., 20 May, 2023)."
+  },
+  "theming": {
+    "default": "light",
+    "supportsDarkMode": true,
+    "componentAccentStrategy": "Cards can opt into soft accent backgrounds using accent.card-* tokens while keeping text high-contrast."
+  },
+  "validation": {
+    "jsonSchemas": "Not enforced; this file is descriptive. Map tokens to your UI system of choice (Tailwind CSS variables, CSS custom properties, or Theme UI)."
+  }
+}
+

@@ -1,0 +1,124 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: jobsmv-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jobsmv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jobsmv_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-jobsmv}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jobsmv}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobsmv-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: jobsmv-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - jobsmv-network
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    container_name: jobsmv-api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ../apps/api:/app
+      - ../packages:/packages
+      - api_keys:/app/keys
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-jobsmv}:${POSTGRES_PASSWORD:-jobsmv_dev_password}@db:5432/${POSTGRES_DB:-jobsmv}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      JWT_AUD: ${JWT_AUD:-jobsmv-api}
+      JWT_ISS: ${JWT_ISS:-jobsmv-auth}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+      JWKS_PRIVATE_KEY_PATH: ${JWKS_PRIVATE_KEY_PATH:-/app/keys/jwt-private.pem}
+      JWKS_PUBLIC_KEY_PATH: ${JWKS_PUBLIC_KEY_PATH:-/app/keys/jwt-public.pem}
+      JWKS_KID: ${JWKS_KID:-jobsmv-key-1}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/livez"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - jobsmv-network
+
+  migrations:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    container_name: jobsmv-migrations
+    command: alembic upgrade head
+    volumes:
+      - ../apps/api:/app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-jobsmv}:${POSTGRES_PASSWORD:-jobsmv_dev_password}@db:5432/${POSTGRES_DB:-jobsmv}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - jobsmv-network
+    profiles:
+      - migrations
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.web
+    container_name: jobsmv-web
+    command: npm run dev
+    volumes:
+      - ../apps/web:/app/apps/web
+      - ../packages:/app/packages
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - jobsmv-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  api_keys:
+
+networks:
+  jobsmv-network:
+    driver: bridge
+

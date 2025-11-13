@@ -1,0 +1,115 @@
+{
+  "rules": [
+    "GLOBAL: You are working in a monorepo for a multi-employer job listing platform (single shared instance). Always follow these rules when creating, editing, or reorganizing code in this repo.",
+
+    "STACK: Use Next.js 16 (App Router, Server Components), Tailwind CSS 4, UI TripleD components (wrapped in a local package), FastAPI (latest) for the backend, and PostgreSQL as the primary database. Optional: Redis for caching or queues. Do NOT introduce Terraform anywhere in this repo.",
+
+    "REPO LAYOUT: Keep this top-level structure and do not invent new top-level folders without explicit instruction: ./apps/web for the Next.js app, ./apps/api for the FastAPI backend, ./packages/ui-tripled for wrapped UI TripleD components, ./packages/config for shared config (tsconfig, eslint, tailwind presets, types), ./infra for Docker Compose and deployment-related scripts/configs, ./dev/docs for architecture, employer scoping, API, and UI docs.",
+
+    "APPS: Never split the frontend and backend into separate repos. They must both live under ./apps (./apps/web and ./apps/api).",
+
+    "PACKAGES: All shared UI, config, and utilities must go into ./packages. Do not duplicate config files across apps. Instead, expose shared configurations via ./packages/config and import/extend them from each app.",
+
+    "PACKAGES-NEXTJS-TRANSPILE: Workspace packages used by Next.js (like @jobsmv/ui-tripled and @jobsmv/types) must export their source TypeScript files directly, not compiled dist files. In each package's package.json, set main, types, and exports to point to ./src/index.ts (not ./dist/). Add these packages to the transpilePackages array in next.config.js so Next.js handles the TypeScript compilation. This avoids pre-build steps and ensures proper module resolution in the Next.js monorepo.",
+
+    "INFRA DIRECTORY: All infra-related files (docker-compose.yml, nginx config, helper scripts) must live under ./infra. Do not put infra files in random app folders.",
+
+    "DOCS DIRECTORY: Architecture, employer scoping, API contracts, and UI patterns must be documented in ./dev/docs. Split docs into small, focused files instead of one large document.",
+
+    "FRONTEND-TECH: In ./apps/web, use Next.js 16 with the App Router (app/ directory only, no pages/), TypeScript everywhere, and Tailwind CSS 4 with a shared Tailwind config from ./packages/config. Prefer Server Components by default and only use Client Components when needed for interactivity.",
+
+    "FRONTEND-ROUTING: Organize the Next.js app with route groups: (public) for anonymous/applicant flows (public job listing, job detail, application forms), (dashboard) for authenticated employer dashboards (jobs, applicants, shortlists). Place them under ./apps/web/app/ with appropriate route group folders.",
+
+    "FRONTEND-API: The frontend must not hardcode raw API URLs inline in components. It should use a typed API client module in ./apps/web/lib/api-client.ts (or similar) that centralizes calling the FastAPI backend. That client should read base URLs from environment variables (e.g., NEXT_PUBLIC_API_URL). The API client reads the current employer context from JWT claims or session state, not from headers or subdomains.",
+
+    "FRONTEND-SERVER-ACTIONS: Prefer Server Components / Server Actions for SSR-friendly data fetching (job listings, job details, employer dashboard data) from FastAPI. For highly interactive data (filters, live tables), use Client Components with React Query/SWR while still going through the same typed API client.",
+
+    "TAILWIND-CONFIG: Tailwind CSS must have a single base config defined in ./packages/config/tailwind.config.ts. Each app (e.g., ./apps/web/tailwind.config.ts) must extend this shared config instead of redefining themes or plugins from scratch.",
+
+    "TAILWIND-USAGE: Prefer design tokens (e.g., semantic color and spacing scales) defined in the Tailwind theme instead of arbitrary hex values. Avoid excessive inline utility soup; for complex styling, create reusable components or wrappers (especially inside packages/ui-tripled).",
+
+    "UI-TRIPLED-PACKAGE: UI TripleD components must be wrapped in a dedicated package under ./packages/ui-tripled (for example, JobCard, DashboardShell, FiltersPanel). Do not paste raw UI TripleD snippets directly into components in ./apps/web. Always create or reuse abstractions in ./packages/ui-tripled and import them.",
+
+    "UI-TRIPLED-STYLING: When wrapping UI TripleD components, preserve the visual and interaction patterns (animations, transitions, hover effects) by keeping or adapting their class names and structure, but expose a clean, typed props API from ./packages/ui-tripled.",
+
+    "UI-TRIPLED-USAGE: Use the wrapped UI TripleD components consistently for job cards, dashboards, hero sections, feature blocks, and other repeated patterns. Do not re-implement similar patterns manually without a strong reason.",
+
+    "BACKEND-LAYOUT: The FastAPI app must live under ./apps/api/app. Use a structure like: app/main.py, app/api/v1/*.py for routers grouped by feature (employers, jobs, applicants, applications), app/core for config/security/employer scoping dependencies, app/db for models/session/base, app/schemas for Pydantic models, app/services for business logic, and app/tests for tests.",
+
+    "BACKEND-ROUTERS: All public HTTP routes must be under versioned prefixes (e.g., /api/v1). Group routers logically by domain: employers, jobs, applicants, applications, auth, etc. Do not put all endpoints into a single file.",
+
+    "BACKEND-LAYERS: Keep clear separation: routers handle HTTP and wiring (dependencies, HTTP responses), services implement business logic (createJob, listJobs, shortlistApplication, etc.), schemas define Pydantic models for input/output, and db/models define SQLAlchemy/SQLModel entities. Avoid placing heavy logic directly in routers.",
+
+    "DB-MODEL-EMPLOYER: Employer scoping must be modeled explicitly in the database. There must be an employers table (id, name, slug, settings, etc.). All employer-owned data (jobs, applications, applicants, employer users) must either contain an employer_id column or be connected via foreign keys that ultimately link back to employers.",
+
+    "EMPLOYER-ENFORCEMENT: Every employer-scoped query must filter by employer. This can be through a direct employer_id filter or through a relationship that implies employer ownership. Never expose cross-employer data from a normal employer endpoint.",
+
+    "EMPLOYER-RESOLUTION: Implement a get_current_employer dependency in FastAPI (e.g., app/core/employer.py) that resolves the active employer from the employer_id claim in the authenticated user's JWT token. Employer-dependent routers must declare this dependency and use it to scope queries. Do not use headers or subdomains for employer resolution.",
+
+    "EMPLOYER-ROUTERS: Routers that operate on employer-specific data (jobs, applications, applicants) must depend on get_current_employer and enforce employer scoping in every list or detail query. For cross-employer or super-admin operations, define separate routers that require special authorization and clearly document them.",
+
+    "EMPLOYER-FRONTEND: The frontend must always interact with employer-scoped endpoints using JWT authentication where the employer context is derived from the token claims. The UI operates under the current employer from auth state. Do not use subdomains or headers for employer context.",
+
+    "AUTH: Use JWT authentication with short-lived tokens (5-15 min). Auth-related dependencies (current user, current employer) must be centralized in app/core/security.py and app/core/employer.py. JWT tokens must include employer_id claim. Do not copy-paste authentication logic across routers.",
+
+    "API-CONTRACT: The FastAPI backend must expose a consistent, documented JSON REST API for employers, jobs, applicants, and applications. For example: /api/v1/employers (admin-only, optional), /api/v1/jobs, /api/v1/jobs/{job_id}, /api/v1/jobs/{job_id}/applications, /api/v1/applications/{application_id}. Use clear, typed request/response schemas.",
+
+    "FEATURES-EMPLOYERS: Employers endpoints (if included) must be admin-only: create/update employer, get employer details and settings, and optionally brand config (logo, colors) that the frontend can use per employer.",
+
+    "FEATURES-JOBS: Jobs endpoints must include: list public jobs (filterable by employer, search, location, type), get job detail, create/update/archive jobs (employer-authenticated), and bulk status transitions for jobs. All write operations must be employer-scoped.",
+
+    "FEATURES-APPLICATIONS: Applications endpoints must include: submit new application for a job (public), list applications per job (employer-authenticated), update application status (applied → shortlisted → rejected/hired), and optionally add notes/tags. All employer views must be scoped by the employer that owns the job.",
+
+    "FEATURES-APPLICANTS: Applicants endpoints must allow employer-authenticated views of an applicant's profile and history as seen by that employer. Cross-employer visibility must not be allowed unless specifically designed for admins.",
+
+    "API-CLIENT-FRONTEND: Implement a typed API client in ./apps/web/lib/api-client.ts that wraps fetch with: base URL from env, JSON parsing, consistent error handling, and JWT auth headers. The client reads employer context from JWT claims, not headers. All UI code must call this client instead of raw fetch URLs scattered across components.",
+
+    "ENV-CONFIG-ROOT: Use .env.example at the repo root and separate example env files per app (e.g., ./apps/web/.env.local.example, ./apps/api/.env.example). Do not commit real secrets. Always update the example files when adding new required environment variables.",
+
+    "ENV-FRONTEND: The frontend’s env file must provide NEXT_PUBLIC_API_URL and NEXT_PUBLIC_APP_URL (at a minimum). Use NEXT_PUBLIC_API_URL for calls to the FastAPI backend. Never hardcode these URLs inside components.",
+
+    "ENV-BACKEND: The backend's env file must define DATABASE_URL, JWT_SECRET (or similar), CORS_ORIGINS, and JWKS_URL (for JWT verification) as needed. The FastAPI config layer must read these from environment variables, not hardcoded values.",
+
+    "DOCKER-COMPOSE: Infra must use Docker Compose defined in ./infra/docker-compose.yml, with services like web (Next.js), api (FastAPI), db (PostgreSQL), and optional redis and nginx. Use named volumes for persistent Postgres data. Do not add Terraform configs.",
+
+    "INFRA-SCRIPTS: Put helper scripts (dev.sh, migrate.sh, seed.sh, etc.) under ./infra/scripts. Use these scripts in docs and CI examples rather than pasting raw docker or alembic commands everywhere.",
+
+    "TESTS-BACKEND: Backend tests must be written with pytest under ./apps/api/app/tests. Use a dedicated test database and fixtures for employers, users, jobs, and applications. Ensure employer scoping rules are covered by tests (no cross-employer leaks).",
+
+    "TESTS-FRONTEND: Frontend tests should use Vitest or Jest with React Testing Library. Focus on critical workflows (job posting, applicant submission, shortlisting) and visibility rules (employer dashboard pages vs public pages).",
+
+    "DEV-DOCS-PATTERN: Dev docs must be short and focused, living under ./dev/docs. Use multiple small documents like infra-overview.md, employer-scoping.md, api-contract.md, ui-patterns.md instead of one monolithic file. When you alter infra or core design, update the relevant doc.",
+
+    "DOCS-LIMITS: Try to keep each doc under roughly 500 lines. If a doc becomes too large, split it into smaller, topic-specific docs. Docs should describe how the system is structured and how to work within the established patterns.",
+
+    "NO-TERRAFORM: Never introduce Terraform or .tf files in this repo. If infrastructure as code is requested, respond by enhancing Docker Compose, nginx configs, or documentation for manual cloud deployment, but do not use Terraform.",
+
+    "CONVENTIONS-FIRST: When adding new features or refactoring, follow existing folder layout, naming patterns, and package boundaries before creating new ones. For example, new backend domains get a router, schema, model, and service consistent with existing modules.",
+
+    "EMPLOYER-SCOPING-REFACTORS: If you encounter endpoints or queries that do not enforce employer scoping, you must refactor them to use get_current_employer (or the established employer dependency) and properly scope all database access by employer.",
+
+    "UI-REUSE: If you create new UI that resembles existing UI TripleD patterns (cards, dashboards, forms), you must first look in ./packages/ui-tripled. If an appropriate component does not exist, create a new one there and then use it from the apps.",
+
+    "DESIGN-SYSTEM-LOCATION: The comprehensive design system documentation is located at ./design/design system.json. This file contains exact styling specifications, component implementations, CSS variables, typography scale, color tokens, spacing, and complete code examples for all UI components in the LuckyJob application.",
+
+    "DESIGN-SYSTEM-MANDATORY: When building any new UI feature or component, you MUST first consult ./design/design system.json to understand the exact styling, component structure, and implementation patterns. Never create new components or styles without referencing the design system specifications.",
+
+    "DESIGN-SYSTEM-TOKENS: Always use semantic CSS variables (--text-primary, --bg-surface, --border-subtle, etc.) defined in ./apps/web/src/app/globals.css instead of hardcoded colors. Use pre-defined component classes (.chip, .button-cta, .icon-button, .card, .job-card, etc.) from the design system rather than recreating styles.",
+
+    "DESIGN-SYSTEM-COMPONENTS: When implementing components, follow the exact structure, CSS classes, and variants specified in ./design/design system.json. Use the provided code examples as templates. For job cards, use the accent color variants (--peach, --mint, --lilac, --blue) as specified. For buttons, use the exact variant classes (primary, button-cta, tertiary, ghost, danger) with correct sizing.",
+
+    "DESIGN-SYSTEM-TYPOGRAPHY: Use var(--font-display) for all headings and titles (via inline style), var(--font-numeric) for prices and statistics, and follow the type scale exactly (display-xl, h1-h4, body, body-sm, micro) as specified in the design system. Never use arbitrary font sizes or weights.",
+
+    "DESIGN-SYSTEM-ICONS: All icons must come from lucide-react library with consistent sizing (w-4 h-4 for small, w-5 h-5 for medium, w-6 h-6 for large) as specified in the design system. Use text-muted color for decorative icons.",
+
+    "DESIGN-SYSTEM-ACCESSIBILITY: Always implement accessibility features as specified in the design system: use .focus-ring class for focus states, maintain WCAG AA contrast ratios, ensure 44px minimum touch targets, use semantic HTML, include ARIA labels for icon-only buttons, and follow all accessibility guidelines in the design system.",
+
+    "DESIGN-SYSTEM-RESPONSIVE: Follow the responsive patterns specified in the design system: use max-w-[1280px] mx-auto px-6 lg:px-8 for main containers, grid-cols-1 md:grid-cols-2 xl:grid-cols-3 for job cards, and mobile-first breakpoints (sm, md, lg, xl, 2xl).",
+
+    "DESIGN-SYSTEM-DARK-MODE: All components must support dark mode automatically through CSS variables. Never hardcode colors that would break dark mode. The design system uses CSS variable-based theming that adapts when .dark class is applied to html/body.",
+
+    "DESIGN-SYSTEM-REFERENCE: When in doubt about styling, spacing, colors, or component structure, refer to ./apps/web/src/app/design-system/page.tsx which contains live examples of all components, or consult ./design/design system.json for complete specifications.",
+
+    "CHANGE-DOCS: Whenever you change infra, employer scoping behavior, or the high-level API surface, add or update entries in ./dev/docs (e.g., infra-overview.md, employer-scoping.md, api-contract.md) so the documentation remains aligned with the current implementation."
+  ]
+}

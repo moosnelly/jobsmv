@@ -1,0 +1,23 @@
+{
+  "name": "@jobsmv/types",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json}\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@jobsmv/eslint-config": "*",
+    "@jobsmv/tsconfig": "*",
+    "typescript": "^5.3.3"
+  }
+}
+

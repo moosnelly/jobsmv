@@ -1,0 +1,31 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package.json files for all workspaces
+COPY package.json ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/tsconfig/package.json ./packages/tsconfig/
+COPY packages/types/package.json ./packages/types/
+COPY packages/config/package.json ./packages/config/
+COPY packages/ui-tripled/package.json ./packages/ui-tripled/
+
+# Copy postinstall script before npm install
+COPY apps/web/scripts ./apps/web/scripts
+
+# Install root and workspace dependencies (postinstall script will skip in Docker)
+RUN DOCKER_BUILD=true npm install --legacy-peer-deps
+
+# Copy application code
+COPY apps/web ./apps/web
+COPY packages ./packages
+
+WORKDIR /app/apps/web
+
+# Expose port
+EXPOSE 3000
+
+# Default command
+CMD ["npm", "run", "dev"]
+

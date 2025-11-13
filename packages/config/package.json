@@ -1,0 +1,24 @@
+{
+  "name": "@jobsmv/config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.js",
+  "files": [
+    "tailwind.config.ts",
+    "eslint.config.js",
+    "tsconfig.base.json"
+  ],
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.js",
+    "format": "prettier --write \"**/*.{ts,js,json}\""
+  },
+  "dependencies": {
+    "@jobsmv/eslint-config": "*",
+    "@jobsmv/tsconfig": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
+
