@@ -50,10 +50,10 @@ outputType = "webview"
 name = "backend"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "redis-server --daemonize yes && cd apps/api && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-waitForPort = 8000
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash apps/api/scripts/generate_keys.sh && redis-server --daemonize yes && cd apps/api && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+waitForPort = 8000
