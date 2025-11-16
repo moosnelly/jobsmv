@@ -32,7 +32,7 @@ export default function DesignSystemShowcase() {
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [switchOn, setSwitchOn] = useState(false);
-  const [checkboxes, setCheckboxes] = useState({
+  const [checkboxes, setCheckboxes] = useState<Record<string, boolean>>({
     option1: false,
     option2: true,
     option3: false,
