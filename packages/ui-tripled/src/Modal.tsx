@@ -47,53 +47,46 @@ export function Modal({
       aria-modal="true"
       onClick={onClose}
     >
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex min-h-screen items-center justify-center px-6 py-8">
         <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm"
           aria-hidden="true"
         ></div>
-        <span
-          className="hidden sm:inline-block sm:h-screen sm:align-middle"
-          aria-hidden="true"
-        >
-          &#8203;
-        </span>
         <div
-          className={`inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:align-middle ${sizeClasses[size]} ${className}`}
+          className={`relative bg-surface rounded-card shadow-modal w-full max-w-md p-6 ${sizeClasses[size]} ${className}`}
           onClick={(e) => e.stopPropagation()}
         >
-          {(title || onClose) && (
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-              {title && (
-                <h3
-                  className="text-lg font-medium leading-6 text-gray-900"
-                  id="modal-title"
-                >
-                  {title}
-                </h3>
-              )}
-              <button
-                onClick={onClose}
-                className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          <div className="flex items-start justify-between mb-4">
+            {title && (
+              <h2
+                className="text-xl font-bold text-primary pr-4"
+                style={{ fontFamily: "var(--font-display)" }}
+                id="modal-title"
               >
-                <span className="sr-only">Close</span>
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-          <div className="px-6 py-4">{children}</div>
+                {title}
+              </h2>
+            )}
+            <button
+              onClick={onClose}
+              className="icon-button flex-shrink-0"
+              aria-label="Close modal"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div className="text-primary">{children}</div>
         </div>
       </div>
     </div>

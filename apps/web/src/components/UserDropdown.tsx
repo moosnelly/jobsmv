@@ -8,6 +8,7 @@ import {
   LogOutIcon,
   SettingsIcon,
   BuildingIcon,
+  AlertCircleIcon,
 } from "lucide-react";
 import type { Employer } from "@jobsmv/types";
 import { useAuth } from "@/lib/auth";
@@ -22,8 +23,15 @@ export default function UserDropdown({ className }: UserDropdownProps) {
   const [employer, setEmployer] = useState<Employer | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [loginFormData, setLoginFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginLoading, setLoginLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, login } = useAuth();
 
   useEffect(() => {
     setHasMounted(true);
@@ -38,7 +46,7 @@ export default function UserDropdown({ className }: UserDropdownProps) {
         .catch(console.error)
         .finally(() => setLoading(false));
     }
-  }, [hasMounted, isAuthenticated]);
+  }, [hasMounted]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -55,6 +63,29 @@ export default function UserDropdown({ className }: UserDropdownProps) {
     logout();
     setEmployer(null);
     setIsOpen(false);
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    setLoginLoading(true);
+
+    try {
+      await login(loginFormData.email, loginFormData.password);
+
+      // Refresh employer data
+      const employerData = await apiClient.getCurrentEmployer();
+      setEmployer(employerData);
+
+      // Reset form and close dropdown
+      setShowLoginForm(false);
+      setLoginFormData({ email: "", password: "" });
+      setIsOpen(false);
+    } catch (err: any) {
+      setLoginError(err.detail || "Login failed. Please check your credentials.");
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   if (hasMounted && isAuthenticated() && loading) {
@@ -80,7 +111,7 @@ export default function UserDropdown({ className }: UserDropdownProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-[var(--dark-header-bg)] border border-[var(--dark-header-border)] rounded-card shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-80 bg-[var(--dark-header-bg)] border border-[var(--dark-header-border)] rounded-card shadow-lg z-50">
           {hasMounted && isAuthenticated() ? (
             // Logged in menu
             <div className="py-2">
@@ -119,6 +150,84 @@ export default function UserDropdown({ className }: UserDropdownProps) {
                 </button>
               </div>
             </div>
+          ) : showLoginForm ? (
+            // Login form
+            <div className="py-4 px-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-[var(--dark-header-text)]">Sign in as Employer</h3>
+                <button
+                  onClick={() => {
+                    setShowLoginForm(false);
+                    setLoginError(null);
+                    setLoginFormData({ email: "", password: "" });
+                  }}
+                  className="text-[var(--dark-header-text-muted)] hover:text-[var(--dark-header-text)] transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                {loginError && (
+                  <div className="flex items-start gap-3 p-3 rounded-[8px] bg-[#FEF2F2] border border-[#FECACA]">
+                    <AlertCircleIcon className="w-4 h-4 text-[#EF4444] flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm text-[#EF4444]">{loginError}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <div>
+                    <label
+                      htmlFor="dropdown-email"
+                      className="block text-sm font-semibold text-[var(--dark-header-text)] mb-2 uppercase tracking-wide"
+                    >
+                      Email address
+                    </label>
+                    <input
+                      id="dropdown-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={loginFormData.email}
+                      onChange={(e) => setLoginFormData({ ...loginFormData, email: e.target.value })}
+                      className="w-full h-10 px-3 rounded-[8px] bg-[var(--control-fill)] border border-[var(--dark-header-border)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:ring-2 focus:ring-[#48A8FF] focus:ring-opacity-50 outline-none transition-all"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="dropdown-password"
+                      className="block text-sm font-semibold text-[var(--dark-header-text)] mb-2 uppercase tracking-wide"
+                    >
+                      Password
+                    </label>
+                    <input
+                      id="dropdown-password"
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={loginFormData.password}
+                      onChange={(e) => setLoginFormData({ ...loginFormData, password: e.target.value })}
+                      className="w-full h-10 px-3 rounded-[8px] bg-[var(--control-fill)] border border-[var(--dark-header-border)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:ring-2 focus:ring-[#48A8FF] focus:ring-opacity-50 outline-none transition-all"
+                      placeholder="Enter your password"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full h-10 bg-gradient-to-r from-[var(--cta-solid)] to-[var(--cta-solid-hover)] hover:from-[var(--cta-solid-hover)] hover:to-[var(--cta-solid)] text-white font-medium rounded-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loginLoading ? "Signing in..." : "Sign in"}
+                </button>
+              </form>
+            </div>
           ) : (
             // Not logged in menu (or during SSR)
             <div className="py-2">
@@ -127,14 +236,13 @@ export default function UserDropdown({ className }: UserDropdownProps) {
               </div>
 
               <div className="py-1">
-                <Link
-                  href="/login?type=employer"
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors"
-                  onClick={() => setIsOpen(false)}
+                <button
+                  onClick={() => setShowLoginForm(true)}
+                  className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors text-left"
                 >
                   <BuildingIcon className="w-4 h-4" />
                   Sign in as Employer
-                </Link>
+                </button>
 
                 <Link
                   href="/register?type=employer"

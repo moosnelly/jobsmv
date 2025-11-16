@@ -4,6 +4,8 @@ from jose import JWTError, jwt
 from pathlib import Path
 import structlog
 import bcrypt
+import os
+import stat
 
 from app.core.config import settings
 
@@ -31,12 +33,19 @@ def get_password_hash(password: str) -> str:
 
 
 def load_jwt_keys() -> tuple[str, str]:
-    """Load JWT private and public keys."""
+    """
+    Load JWT private and public keys.
+
+    Automatically generates RSA key pair if keys don't exist.
+    Sets secure file permissions (600 for private, 644 for public key).
+    """
     private_key_path = Path(settings.JWKS_PRIVATE_KEY_PATH)
     public_key_path = Path(settings.JWKS_PUBLIC_KEY_PATH)
 
     if not private_key_path.exists() or not public_key_path.exists():
-        logger.warning("JWT keys not found, generating new keys")
+        logger.info("JWT keys not found, generating new RSA key pair",
+                   private_key_path=str(private_key_path),
+                   public_key_path=str(public_key_path))
         from cryptography.hazmat.primitives.asymmetric import rsa
         from cryptography.hazmat.primitives import serialization
 
@@ -47,8 +56,10 @@ def load_jwt_keys() -> tuple[str, str]:
         )
         public_key = private_key.public_key()
 
-        # Save private key
+        # Ensure keys directory exists
         private_key_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Save private key with secure permissions (600)
         with open(private_key_path, "wb") as f:
             f.write(
                 private_key.private_bytes(
@@ -57,8 +68,10 @@ def load_jwt_keys() -> tuple[str, str]:
                     encryption_algorithm=serialization.NoEncryption(),
                 )
             )
+        # Set private key permissions to 600 (owner read/write only)
+        os.chmod(private_key_path, stat.S_IRUSR | stat.S_IWUSR)
 
-        # Save public key
+        # Save public key with readable permissions (644)
         with open(public_key_path, "wb") as f:
             f.write(
                 public_key.public_bytes(
@@ -66,6 +79,14 @@ def load_jwt_keys() -> tuple[str, str]:
                     format=serialization.PublicFormat.SubjectPublicKeyInfo,
                 )
             )
+        # Set public key permissions to 644 (owner read/write, group/other read)
+        os.chmod(public_key_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+
+        logger.info("JWT keys generated successfully with secure permissions")
+    else:
+        logger.debug("Loading existing JWT keys",
+                    private_key_path=str(private_key_path),
+                    public_key_path=str(public_key_path))
 
     with open(private_key_path, "rb") as f:
         private_key = f.read()

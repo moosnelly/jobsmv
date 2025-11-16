@@ -5,11 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
 from app.db.session import get_db
-from app.db.models import Job, Category, JobCategory
+from app.db.models import Job, Category, JobCategory, Employer
+from sqlalchemy.orm import selectinload
 from app.schemas.job import JobResponse
 from app.schemas.application import ApplicationCreate, ApplicationResponse
 from app.schemas.common import CursorPage
-from app.utils.pagination import encode_cursor, decode_cursor
+from app.utils.pagination import get_cursor_paginated_results
 
 router = APIRouter()
 
@@ -22,7 +23,7 @@ async def list_public_jobs(
     db: AsyncSession = Depends(get_db),
 ):
     """List all published jobs (public endpoint)."""
-    query = select(Job).where(Job.status == "published")
+    query = select(Job).options(selectinload(Job.employer)).where(Job.status == "published")
 
     if q:
         query = query.where(
@@ -35,18 +36,19 @@ async def list_public_jobs(
     if location:
         query = query.where(Job.location.ilike(f"%{location}%"))
 
+    # Apply ordering
+    query = query.order_by(Job.created_at.desc())
+
     # Cursor pagination
-    if cursor:
-        cursor_data = decode_cursor(cursor)
-        if cursor_data and "last_id" in cursor_data:
-            query = query.where(Job.id > uuid.UUID(cursor_data["last_id"]))
+    jobs, next_cursor = await get_cursor_paginated_results(
+        db=db,
+        query=query,
+        cursor=cursor,
+        page_size=20,
+        id_field=Job.id,
+    )
 
-    query = query.order_by(Job.created_at.desc()).limit(21)
-
-    result = await db.execute(query)
-    jobs = result.scalars().all()
-
-    # Load categories
+    # Load categories and set employer company name
     for job in jobs:
         cat_result = await db.execute(
             select(Category)
@@ -54,13 +56,11 @@ async def list_public_jobs(
             .where(JobCategory.job_id == job.id)
         )
         job.categories = [cat.name for cat in cat_result.scalars().all()]
+        # Set employer company name for response
+        if job.employer:
+            job.employer_company_name = job.employer.company_name
 
-    has_more = len(jobs) > 20
-    items = [JobResponse.model_validate(job) for job in jobs[:20]]
-
-    next_cursor = None
-    if has_more and items:
-        next_cursor = encode_cursor({"last_id": str(items[-1].id)})
+    items = [JobResponse.model_validate(job) for job in jobs]
 
     return CursorPage(items=items, next_cursor=next_cursor)
 
@@ -72,7 +72,9 @@ async def get_public_job(
 ):
     """Get a published job by ID (public endpoint)."""
     result = await db.execute(
-        select(Job).where(and_(Job.id == job_id, Job.status == "published"))
+        select(Job)
+        .options(selectinload(Job.employer))
+        .where(and_(Job.id == job_id, Job.status == "published"))
     )
     job = result.scalar_one_or_none()
 
@@ -89,6 +91,10 @@ async def get_public_job(
         .where(JobCategory.job_id == job.id)
     )
     job.categories = [cat.name for cat in cat_result.scalars().all()]
+    
+    # Set employer company name for response
+    if job.employer:
+        job.employer_company_name = job.employer.company_name
 
     return JobResponse.model_validate(job)
 

@@ -36,12 +36,9 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: HeadersInit = {
       "Content-Type": "application/json",
+      ...(this.token && { Authorization: `Bearer ${this.token}` }),
       ...options.headers,
     };
-
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
 
     let response: Response;
     try {

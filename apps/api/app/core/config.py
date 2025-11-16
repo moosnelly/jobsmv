@@ -50,12 +50,19 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return ["http://localhost:3000"]
 
-    # JWT
+    # JWT Configuration
+    # WARNING: JWT keys should NEVER be committed to version control
+    # Use environment variables JWKS_PRIVATE_KEY_PATH and JWKS_PUBLIC_KEY_PATH
+    # to specify secure key locations in production
     JWT_AUD: str = "jobsmv-api"
     JWT_ISS: str = "jobsmv-auth"
     JWT_ALGORITHM: str = "RS256"
-    JWKS_PRIVATE_KEY_PATH: str = "apps/api/keys/jwt-private.pem"
-    JWKS_PUBLIC_KEY_PATH: str = "apps/api/keys/jwt-public.pem"
+
+    # JWT Key Paths - Can be overridden via environment variables
+    # In production, use secure key management services (AWS KMS, HashiCorp Vault, etc.)
+    # Default paths are relative to project root, keys auto-generate if missing
+    JWKS_PRIVATE_KEY_PATH: str = "apps/api/keys/jwt-private.pem"  # File permissions: 600
+    JWKS_PUBLIC_KEY_PATH: str = "apps/api/keys/jwt-public.pem"    # File permissions: 644
     JWKS_KID: str = "jobsmv-key-1"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 

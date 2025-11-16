@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 import uuid
 
 from app.core.employer import get_current_employer, require_roles
@@ -9,7 +10,7 @@ from app.db.session import get_db
 from app.db.models import Job, Employer, Category, JobCategory
 from app.schemas.job import JobCreate, JobUpdate, JobResponse
 from app.schemas.common import CursorPage
-from app.utils.pagination import encode_cursor, decode_cursor
+from app.utils.pagination import get_cursor_paginated_results
 
 router = APIRouter()
 
@@ -24,7 +25,7 @@ async def list_jobs(
     db: AsyncSession = Depends(get_db),
 ):
     """List jobs for the current employer."""
-    query = select(Job).where(Job.employer_id == employer.id)
+    query = select(Job).options(selectinload(Job.employer)).where(Job.employer_id == employer.id)
 
     if q:
         query = query.where(
@@ -40,18 +41,19 @@ async def list_jobs(
     if status:
         query = query.where(Job.status == status)
 
+    # Apply ordering
+    query = query.order_by(Job.created_at.desc())
+
     # Cursor pagination
-    if cursor:
-        cursor_data = decode_cursor(cursor)
-        if cursor_data and "last_id" in cursor_data:
-            query = query.where(Job.id > uuid.UUID(cursor_data["last_id"]))
+    jobs, next_cursor = await get_cursor_paginated_results(
+        db=db,
+        query=query,
+        cursor=cursor,
+        page_size=20,
+        id_field=Job.id,
+    )
 
-    query = query.order_by(Job.created_at.desc()).limit(21)
-
-    result = await db.execute(query)
-    jobs = result.scalars().all()
-
-    # Load categories
+    # Load categories and set employer company name
     for job in jobs:
         cat_result = await db.execute(
             select(Category)
@@ -59,13 +61,11 @@ async def list_jobs(
             .where(JobCategory.job_id == job.id)
         )
         job.categories = [cat.name for cat in cat_result.scalars().all()]
+        # Set employer company name for response
+        if job.employer:
+            job.employer_company_name = job.employer.company_name
 
-    has_more = len(jobs) > 20
-    items = [JobResponse.model_validate(job) for job in jobs[:20]]
-
-    next_cursor = None
-    if has_more and items:
-        next_cursor = encode_cursor({"last_id": str(items[-1].id)})
+    items = [JobResponse.model_validate(job) for job in jobs]
 
     return CursorPage(items=items, next_cursor=next_cursor)
 
@@ -98,7 +98,7 @@ async def create_job(
             db.add(job_category)
 
     await db.commit()
-    await db.refresh(job)
+    await db.refresh(job, ["employer"])
 
     # Load categories
     cat_result = await db.execute(
@@ -107,6 +107,10 @@ async def create_job(
         .where(JobCategory.job_id == job.id)
     )
     job.categories = [cat.name for cat in cat_result.scalars().all()]
+    
+    # Set employer company name for response
+    if job.employer:
+        job.employer_company_name = job.employer.company_name
 
     return JobResponse.model_validate(job)
 
@@ -119,7 +123,9 @@ async def get_job(
 ):
     """Get a job by ID."""
     result = await db.execute(
-        select(Job).where(and_(Job.id == job_id, Job.employer_id == employer.id))
+        select(Job)
+        .options(selectinload(Job.employer))
+        .where(and_(Job.id == job_id, Job.employer_id == employer.id))
     )
     job = result.scalar_one_or_none()
 
@@ -136,6 +142,10 @@ async def get_job(
         .where(JobCategory.job_id == job.id)
     )
     job.categories = [cat.name for cat in cat_result.scalars().all()]
+    
+    # Set employer company name for response (employer already loaded via selectinload)
+    if job.employer:
+        job.employer_company_name = job.employer.company_name
 
     return JobResponse.model_validate(job)
 
@@ -149,7 +159,9 @@ async def update_job(
 ):
     """Update a job."""
     result = await db.execute(
-        select(Job).where(and_(Job.id == job_id, Job.employer_id == employer.id))
+        select(Job)
+        .options(selectinload(Job.employer))
+        .where(and_(Job.id == job_id, Job.employer_id == employer.id))
     )
     job = result.scalar_one_or_none()
 
@@ -176,7 +188,7 @@ async def update_job(
             db.add(job_category)
 
     await db.commit()
-    await db.refresh(job)
+    await db.refresh(job, ["employer"])
 
     # Load categories
     cat_result = await db.execute(
@@ -185,6 +197,10 @@ async def update_job(
         .where(JobCategory.job_id == job.id)
     )
     job.categories = [cat.name for cat in cat_result.scalars().all()]
+    
+    # Set employer company name for response (employer already loaded via selectinload)
+    if job.employer:
+        job.employer_company_name = job.employer.company_name
 
     return JobResponse.model_validate(job)
 

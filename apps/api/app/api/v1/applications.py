@@ -9,7 +9,7 @@ from app.db.session import get_db
 from app.db.models import Application, Job, Employer
 from app.schemas.application import ApplicationCreate, ApplicationUpdate, ApplicationResponse
 from app.schemas.common import CursorPage
-from app.utils.pagination import encode_cursor, decode_cursor
+from app.utils.pagination import get_cursor_paginated_results
 from app.utils.rate_limit import check_rate_limit
 
 router = APIRouter()
@@ -86,23 +86,19 @@ async def list_job_applications(
     if status_filter:
         query = query.where(Application.status == status_filter)
 
+    # Apply ordering
+    query = query.order_by(Application.created_at.desc())
+
     # Cursor pagination
-    if cursor:
-        cursor_data = decode_cursor(cursor)
-        if cursor_data and "last_id" in cursor_data:
-            query = query.where(Application.id > uuid.UUID(cursor_data["last_id"]))
+    applications, next_cursor = await get_cursor_paginated_results(
+        db=db,
+        query=query,
+        cursor=cursor,
+        page_size=20,
+        id_field=Application.id,
+    )
 
-    query = query.order_by(Application.created_at.desc()).limit(21)
-
-    result = await db.execute(query)
-    applications = result.scalars().all()
-
-    has_more = len(applications) > 20
-    items = [ApplicationResponse.model_validate(app) for app in applications[:20]]
-
-    next_cursor = None
-    if has_more and items:
-        next_cursor = encode_cursor({"last_id": str(items[-1].id)})
+    items = [ApplicationResponse.model_validate(app) for app in applications]
 
     return CursorPage(items=items, next_cursor=next_cursor)
 

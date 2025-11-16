@@ -37,6 +37,7 @@ class JobUpdate(BaseModel):
 class JobResponse(JobBase):
     id: uuid.UUID
     employer_id: uuid.UUID
+    employer_company_name: Optional[str] = None
     status: str
     categories: Optional[list[str]] = None
     created_at: datetime

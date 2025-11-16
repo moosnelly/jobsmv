@@ -16,6 +16,7 @@ export interface PaginatedResponse<T> {
 export interface Job {
   id: string;
   employer_id: string;
+  employer_company_name?: string;
   title: string;
   description_md: string;
   requirements_md?: string;

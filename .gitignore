@@ -58,6 +58,10 @@ alembic/versions/*.pyc
 
 # JWT Keys - exclude all keys from version control
 apps/api/keys/*.pem
+apps/api/keys/*.key
+apps/api/keys/*.p12
+apps/api/keys/*.pfx
+!apps/api/keys/.gitkeep
 
 # Database
 *.db
