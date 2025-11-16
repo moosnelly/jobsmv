@@ -1,603 +1,461 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   SearchIcon,
-  BriefcaseIcon,
-  TrendingUpIcon,
   MapPinIcon,
+  BriefcaseIcon,
   ClockIcon,
-  UsersIcon,
-  CheckCircleIcon,
-  ArrowRightIcon,
-  StarIcon,
-  BuildingIcon,
-  GraduationCapIcon,
-  HeartIcon,
-  ZapIcon,
-  ShieldCheckIcon,
+  ChevronDownIcon,
+  SlidersHorizontalIcon,
+  UserIcon,
+  BellIcon,
+  SettingsIcon,
 } from "lucide-react";
-import { useState } from "react";
+import type { Job, Category } from "@jobsmv/types";
+import { apiClient } from "@/lib/api-client";
+
+const accentColors = ["peach", "mint", "lilac", "blue"] as const;
 
 export default function HomePage() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Filter states
   const [searchQuery, setSearchQuery] = useState("");
-  const [location, setLocation] = useState("");
+  const [workLocation, setWorkLocation] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [salaryRange, setSalaryRange] = useState([1200, 20000]);
+  const [sortBy, setSortBy] = useState("last_updated");
+  
+  // Sidebar filter states
+  const [workingSchedule, setWorkingSchedule] = useState({
+    fullTime: true,
+    partTime: true,
+    internship: false,
+    projectWork: false,
+    volunteering: false,
+  });
+  
+  const [employmentType, setEmploymentType] = useState({
+    fullDay: true,
+    flexibleSchedule: true,
+    shiftWork: false,
+    distantWork: true,
+    shiftMethod: false,
+  });
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [jobsData, categoriesData] = await Promise.all([
+          apiClient.getPublicJobs(),
+          apiClient.getCategories(),
+        ]);
+        setJobs(jobsData.items || []);
+        setCategories(categoriesData || []);
+      } catch (error) {
+        console.error("Failed to load jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to jobs page with search params
-    const params = new URLSearchParams();
-    if (searchQuery) params.set("q", searchQuery);
-    if (location) params.set("location", location);
-    window.location.href = `/jobs?${params.toString()}`;
+    // Filter jobs based on search query
+  };
+
+  const getJobCardColor = (index: number) => {
+    const colorIndex = index % accentColors.length;
+    const colorMap = {
+      peach: "job-card--peach",
+      mint: "job-card--mint",
+      lilac: "job-card--lilac",
+      blue: "job-card--blue",
+    };
+    return colorMap[accentColors[colorIndex]];
   };
 
   return (
     <div className="min-h-screen bg-app">
-      {/* Navigation */}
-      <header className="bg-surface border-b border-subtle sticky top-0 z-50 backdrop-blur-sm">
+      {/* Dark Navigation Header */}
+      <header className="bg-[var(--dark-header-bg)] text-[var(--dark-header-text)] border-b border-[var(--dark-header-border)]">
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-[72px]">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#48A8FF] to-[#0056B3] flex items-center justify-center">
-                <BriefcaseIcon className="w-5 h-5 text-white" />
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[var(--dark-header-text)] flex items-center justify-center">
+                <BriefcaseIcon className="w-5 h-5 text-[var(--dark-header-bg)]" />
               </div>
               <span
-                className="text-xl font-bold text-primary"
+                className="text-lg font-bold"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                JobsMV
+                LuckyJob
               </span>
             </Link>
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
               <Link
-                href="/jobs"
-                className="px-3 py-2.5 text-muted font-medium hover:text-primary transition-colors"
+                href="/"
+                className="px-3 py-2.5 text-[var(--dark-header-text)] font-medium border-b-2 border-[var(--dark-header-text)] -mb-[1px] focus-ring"
               >
-                Browse Jobs
+                Find job
               </Link>
               <Link
-                href="/jobs"
-                className="px-3 py-2.5 text-muted font-medium hover:text-primary transition-colors"
+                href="#messages"
+                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
               >
-                Companies
+                Messages
               </Link>
               <Link
-                href="/login"
-                className="px-3 py-2.5 text-muted font-medium hover:text-primary transition-colors"
+                href="#hiring"
+                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
               >
-                For Employers
+                Hiring
+              </Link>
+              <Link
+                href="#community"
+                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
+              >
+                Community
+              </Link>
+              <Link
+                href="#faq"
+                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
+              >
+                FAQ
               </Link>
             </nav>
 
-            {/* Auth Buttons */}
+            {/* Right Section */}
             <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="hidden sm:inline-flex items-center justify-center h-10 px-4 rounded-pill bg-transparent text-primary font-semibold hover:bg-sunken transition-colors focus-ring"
+              <button 
+                className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--dark-header-text-muted)] hover:text-[var(--dark-header-text)] transition-colors focus-ring"
+                aria-label="Select location"
               >
-                Sign In
-              </Link>
-              <Link href="/register" className="button-cta">
-                Get Started
-              </Link>
+                <MapPinIcon className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">New York, NY</span>
+                <ChevronDownIcon className="w-4 h-4" aria-hidden="true" />
+              </button>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--cta-solid)] to-[var(--cta-solid-hover)] flex items-center justify-center">
+                <UserIcon className="w-4 h-4 text-[var(--dark-header-text)]" aria-hidden="true" />
+              </div>
+              <button 
+                className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
+                aria-label="Settings"
+              >
+                <SettingsIcon className="w-4 h-4" />
+              </button>
+              <button 
+                className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
+                aria-label="Notifications"
+              >
+                <BellIcon className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Toolbar - Filter Row */}
+          <div className="py-3 border-t border-[var(--dark-header-border)]">
+            <div className="flex items-center gap-3 overflow-x-auto">
+              {/* Search */}
+              <div className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] min-w-[200px]">
+                <SearchIcon className="w-4 h-4 text-[var(--dark-header-text-muted)] flex-shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Designer"
+                  aria-label="Search jobs"
+                  className="flex-1 bg-transparent text-[var(--dark-header-text)] placeholder:text-[var(--dark-header-text-muted)] outline-none text-sm focus-ring"
+                />
+                <ChevronDownIcon className="w-4 h-4 text-[var(--dark-header-text-muted)] flex-shrink-0" aria-hidden="true" />
+              </div>
+
+              {/* Work Location */}
+              <div className="relative">
+                <label htmlFor="work-location" className="sr-only">Work location</label>
+                <select
+                  id="work-location"
+                  value={workLocation}
+                  onChange={(e) => setWorkLocation(e.target.value)}
+                  className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none pr-8 focus-ring"
+                >
+                  <option value="">Work location</option>
+                  <option value="remote">Remote</option>
+                  <option value="office">Office</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+                <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
+                <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
+              </div>
+
+              {/* Experience */}
+              <div className="relative">
+                <label htmlFor="experience-level" className="sr-only">Experience level</label>
+                <select
+                  id="experience-level"
+                  value={experienceLevel}
+                  onChange={(e) => setExperienceLevel(e.target.value)}
+                  className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none pr-8 focus-ring"
+                >
+                  <option value="">Experience</option>
+                  <option value="entry">Entry level</option>
+                  <option value="mid">Mid level</option>
+                  <option value="senior">Senior level</option>
+                </select>
+                <BriefcaseIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
+                <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
+              </div>
+
+              {/* Payment Type */}
+              <div className="relative">
+                <label htmlFor="payment-type" className="sr-only">Payment type</label>
+                <select
+                  id="payment-type"
+                  className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none pr-8 focus-ring"
+                >
+                  <option value="monthly">Per month</option>
+                  <option value="hourly">Per hour</option>
+                  <option value="annual">Per year</option>
+                </select>
+                <ClockIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
+                <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
+              </div>
+
+              {/* Salary Range */}
+              <div className="flex items-center gap-3 px-4 h-10 text-sm text-[var(--dark-header-text)] ml-auto">
+                <label htmlFor="salary-range" className="whitespace-nowrap">Salary range</label>
+                <div className="flex items-center gap-2">
+                  <output htmlFor="salary-range" className="font-semibold" style={{ fontFamily: "var(--font-numeric)" }}>
+                    ${salaryRange[0].toLocaleString()}
+                  </output>
+                  <div className="relative w-24">
+                    <input
+                      type="range"
+                      id="salary-range"
+                      min="1000"
+                      max="30000"
+                      step="100"
+                      value={salaryRange[1]}
+                      onChange={(e) => setSalaryRange([salaryRange[0], parseInt(e.target.value)])}
+                      aria-label="Maximum salary"
+                      className="w-full h-1 bg-[var(--dark-header-control-bg)] rounded-full appearance-none cursor-pointer focus-ring [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--cta-solid)] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--dark-header-text)]"
+                    />
+                  </div>
+                  <output htmlFor="salary-range" className="font-semibold" style={{ fontFamily: "var(--font-numeric)" }}>
+                    ${salaryRange[1].toLocaleString()}
+                  </output>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0E1116] to-[#1a2332] text-white">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-[#48A8FF] rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#e3dbfa] rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8 py-20 lg:py-28">
-          <div className="max-w-3xl">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-pill bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-              <StarIcon className="w-4 h-4 text-[#FFD700] fill-[#FFD700]" />
-              <span className="text-sm font-semibold">Trusted by 10,000+ job seekers</span>
-            </div>
-
-            {/* Headline */}
-            <h1
-              className="text-5xl lg:text-6xl font-bold leading-tight mb-6"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Find Your Dream Job{" "}
-              <span className="text-[#48A8FF]">Today</span>
-            </h1>
-
-            <p className="text-xl text-[#BAC1CC] mb-10 leading-relaxed">
-              Discover thousands of opportunities from top companies. Your next career move starts here.
-            </p>
-
-            {/* Search Form */}
-            <form onSubmit={handleSearch} className="bg-white rounded-[20px] p-2 shadow-xl max-w-2xl">
-              <div className="flex flex-col md:flex-row gap-2">
-                <div className="flex items-center gap-3 flex-1 px-4 py-3 bg-[#F8FAFC] rounded-[16px]">
-                  <SearchIcon className="w-5 h-5 text-[#667085] flex-shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Job title, keywords..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1 bg-transparent text-[#0E1116] placeholder:text-[#667085] outline-none"
-                  />
-                </div>
-                <div className="flex items-center gap-3 flex-1 px-4 py-3 bg-[#F8FAFC] rounded-[16px]">
-                  <MapPinIcon className="w-5 h-5 text-[#667085] flex-shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="flex-1 bg-transparent text-[#0E1116] placeholder:text-[#667085] outline-none"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center h-[52px] px-8 rounded-[16px] bg-[#48A8FF] text-white font-bold hover:bg-[#0056B3] transition-colors shadow-lg"
+      {/* Main Content */}
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+          {/* Left Sidebar - Filters */}
+          <aside className="space-y-6">
+            {/* Promotional Card */}
+            <div className="bg-[var(--dark-header-bg)] text-[var(--dark-header-text)] rounded-card p-6 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--cta-solid)] rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-[var(--color-accent-card-3)] rounded-full blur-2xl" />
+              </div>
+              <div className="relative">
+                <h3
+                  className="text-xl font-bold mb-3 leading-tight"
+                  style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Search Jobs
+                  Get Your best profession with LuckyJob
+                </h3>
+                <button className="button-cta w-full mt-4">
+                  Learn more
                 </button>
               </div>
-            </form>
+            </div>
 
-            {/* Popular Searches */}
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-[#BAC1CC]">Popular:</span>
-              {["UI Designer", "Frontend Developer", "Product Manager", "Data Analyst"].map(
-                (tag) => (
-                  <Link
-                    key={tag}
-                    href={`/jobs?q=${encodeURIComponent(tag)}`}
-                    className="chip !bg-white/10 !text-white hover:!bg-white/20 transition-colors"
-                  >
-                    {tag}
-                  </Link>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 pt-16 border-t border-white/10">
-            <div>
-              <div
-                className="text-4xl font-bold mb-2"
-                style={{ fontFamily: "var(--font-numeric)" }}
-              >
-                10K+
-              </div>
-              <div className="text-[#BAC1CC]">Active Jobs</div>
-            </div>
-            <div>
-              <div
-                className="text-4xl font-bold mb-2"
-                style={{ fontFamily: "var(--font-numeric)" }}
-              >
-                5K+
-              </div>
-              <div className="text-[#BAC1CC]">Companies</div>
-            </div>
-            <div>
-              <div
-                className="text-4xl font-bold mb-2"
-                style={{ fontFamily: "var(--font-numeric)" }}
-              >
-                50K+
-              </div>
-              <div className="text-[#BAC1CC]">Job Seekers</div>
-            </div>
-            <div>
-              <div
-                className="text-4xl font-bold mb-2"
-                style={{ fontFamily: "var(--font-numeric)" }}
-              >
-                95%
-              </div>
-              <div className="text-[#BAC1CC]">Success Rate</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Categories */}
-      <section className="max-w-[1280px] mx-auto px-6 lg:px-8 py-16 lg:py-24">
-        <div className="text-center mb-12">
-          <h2
-            className="text-4xl font-bold text-primary mb-4"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Browse by Category
-          </h2>
-          <p className="text-lg text-secondary max-w-2xl mx-auto">
-            Explore opportunities across various industries and find the perfect match for your skills
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              name: "Technology",
-              count: 2847,
-              icon: <BriefcaseIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-4)",
-            },
-            {
-              name: "Design",
-              count: 1523,
-              icon: <StarIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-3)",
-            },
-            {
-              name: "Marketing",
-              count: 1891,
-              icon: <TrendingUpIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-1)",
-            },
-            {
-              name: "Finance",
-              count: 743,
-              icon: <BuildingIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-2)",
-            },
-            {
-              name: "Healthcare",
-              count: 921,
-              icon: <HeartIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-1)",
-            },
-            {
-              name: "Education",
-              count: 654,
-              icon: <GraduationCapIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-4)",
-            },
-            {
-              name: "Sales",
-              count: 1234,
-              icon: <UsersIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-2)",
-            },
-            {
-              name: "Engineering",
-              count: 2156,
-              icon: <ZapIcon className="w-6 h-6" />,
-              color: "var(--color-accent-card-3)",
-            },
-          ].map((category, index) => (
-            <Link
-              key={category.name}
-              href={`/jobs?category=${encodeURIComponent(category.name)}`}
-              className="card hover:shadow-lg transition-all duration-300 group cursor-pointer"
-              style={{ backgroundColor: category.color }}
-            >
+            {/* Filters */}
+            <div className="bg-surface rounded-card p-5 shadow-card border border-subtle">
               <div className="flex items-center justify-between mb-4">
-                <div
-                  className="w-12 h-12 rounded-xl bg-white/50 backdrop-blur-sm flex items-center justify-center text-[#0E1116] group-hover:scale-110 transition-transform"
-                >
-                  {category.icon}
-                </div>
-                <ArrowRightIcon className="w-5 h-5 text-[#0E1116] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </div>
-              <h3
-                className="text-xl font-semibold text-primary mb-1"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {category.name}
-              </h3>
-              <p className="text-sm text-secondary">
-                <span
-                  className="font-semibold text-primary"
-                  style={{ fontFamily: "var(--font-numeric)" }}
-                >
-                  {category.count.toLocaleString()}
-                </span>{" "}
-                open positions
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="bg-sunken py-16 lg:py-24">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2
-              className="text-4xl font-bold text-primary mb-4"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              How It Works
-            </h2>
-            <p className="text-lg text-secondary max-w-2xl mx-auto">
-              Get started in three simple steps and land your dream job
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                step: "1",
-                title: "Create Your Profile",
-                description:
-                  "Sign up and build your professional profile with your skills, experience, and career goals.",
-                icon: <UsersIcon className="w-6 h-6 text-white" />,
-              },
-              {
-                step: "2",
-                title: "Find Perfect Jobs",
-                description:
-                  "Browse thousands of opportunities and get personalized recommendations based on your profile.",
-                icon: <SearchIcon className="w-6 h-6 text-white" />,
-              },
-              {
-                step: "3",
-                title: "Apply & Get Hired",
-                description:
-                  "Apply with one click and track your applications. Connect directly with employers.",
-                icon: <CheckCircleIcon className="w-6 h-6 text-white" />,
-              },
-            ].map((step) => (
-              <div key={step.step} className="card text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-[#48A8FF] to-[#0056B3] mb-6">
-                  {step.icon}
-                </div>
-                <div
-                  className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[var(--chip-bg)] text-primary font-bold mb-4"
-                  style={{ fontFamily: "var(--font-numeric)" }}
-                >
-                  {step.step}
-                </div>
-                <h3
-                  className="text-2xl font-semibold text-primary mb-3"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  {step.title}
+                <h3 className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-display)" }}>
+                  Filters
                 </h3>
-                <p className="text-secondary leading-relaxed">{step.description}</p>
+                <button className="text-sm text-muted hover:text-primary focus-ring" aria-label="Filter options">
+                  <SlidersHorizontalIcon className="w-4 h-4" />
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Why Choose Us */}
-      <section className="max-w-[1280px] mx-auto px-6 lg:px-8 py-16 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2
-              className="text-4xl font-bold text-primary mb-6"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Why Job Seekers Love JobsMV
-            </h2>
-            <p className="text-lg text-secondary mb-8">
-              We're not just another job board. We're your partner in career success.
-            </p>
-
-            <div className="space-y-6">
-              {[
-                {
-                  icon: <ZapIcon className="w-5 h-5 text-[#48A8FF]" />,
-                  title: "Lightning Fast Applications",
-                  description: "Apply to jobs with one click using your saved profile",
-                },
-                {
-                  icon: <ShieldCheckIcon className="w-5 h-5 text-[#16A34A]" />,
-                  title: "Verified Companies Only",
-                  description: "All employers are verified to ensure legitimate opportunities",
-                },
-                {
-                  icon: <TrendingUpIcon className="w-5 h-5 text-[#F59E0B]" />,
-                  title: "Smart Recommendations",
-                  description: "Get personalized job matches based on your skills and preferences",
-                },
-                {
-                  icon: <HeartIcon className="w-5 h-5 text-[#EF4444]" />,
-                  title: "Save Your Favorites",
-                  description: "Bookmark jobs and get alerts when similar positions open up",
-                },
-              ].map((feature, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-surface border border-subtle flex items-center justify-center">
-                    {feature.icon}
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-primary mb-1">
-                      {feature.title}
-                    </h4>
-                    <p className="text-secondary">{feature.description}</p>
-                  </div>
+              {/* Working Schedule */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-primary mb-3">Working schedule</h4>
+                <div className="space-y-2">
+                  {Object.entries(workingSchedule).map(([key, value]) => (
+                    <label key={key} className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={value}
+                        onChange={(e) =>
+                          setWorkingSchedule({ ...workingSchedule, [key]: e.target.checked })
+                        }
+                        className="w-4 h-4 rounded border-subtle text-[var(--color-ink)] focus-ring"
+                      />
+                      <span className="text-sm text-secondary group-hover:text-primary transition-colors">
+                        {key
+                          .replace(/([A-Z])/g, " $1")
+                          .replace(/^./, (str) => str.toUpperCase())}
+                      </span>
+                    </label>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div className="relative">
-            <div className="card p-8 bg-gradient-to-br from-[#e3dbfa] to-[#fbe2f4]">
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-white shadow-md flex items-center justify-center">
-                    <StarIcon className="w-7 h-7 text-[#FFD700] fill-[#FFD700]" />
-                  </div>
-                  <div>
-                    <div
-                      className="text-3xl font-bold text-primary"
-                      style={{ fontFamily: "var(--font-numeric)" }}
-                    >
-                      4.9/5
-                    </div>
-                    <div className="text-sm text-secondary">Average rating</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white rounded-[16px] p-5 shadow-sm">
-                    <p className="text-primary mb-3 leading-relaxed">
-                      "JobsMV helped me land my dream job in just 2 weeks! The platform is so easy to use."
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#48A8FF] to-[#0056B3]" />
-                      <div>
-                        <div className="text-sm font-semibold text-primary">Sarah Johnson</div>
-                        <div className="text-xs text-muted">Product Designer</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-[16px] p-5 shadow-sm">
-                    <p className="text-primary mb-3 leading-relaxed">
-                      "The best job platform I've used. Great companies and super responsive support team!"
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#16A34A] to-[#10B981]" />
-                      <div>
-                        <div className="text-sm font-semibold text-primary">Michael Chen</div>
-                        <div className="text-xs text-muted">Software Engineer</div>
-                      </div>
-                    </div>
-                  </div>
+              {/* Employment Type */}
+              <div>
+                <h4 className="text-sm font-semibold text-primary mb-3">Employment type</h4>
+                <div className="space-y-2">
+                  {Object.entries(employmentType).map(([key, value]) => (
+                    <label key={key} className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={value}
+                        onChange={(e) =>
+                          setEmploymentType({ ...employmentType, [key]: e.target.checked })
+                        }
+                        className="w-4 h-4 rounded border-subtle text-[var(--color-ink)] focus-ring"
+                      />
+                      <span className="text-sm text-secondary group-hover:text-primary transition-colors">
+                        {key
+                          .replace(/([A-Z])/g, " $1")
+                          .replace(/^./, (str) => str.toUpperCase())}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </aside>
 
-      {/* CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#48A8FF] to-[#0056B3] text-white py-20">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-20 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-20 w-96 h-96 bg-[#e3dbfa] rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8 text-center">
-          <h2
-            className="text-4xl lg:text-5xl font-bold mb-6"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Ready to Take the Next Step?
-          </h2>
-          <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-            Join thousands of professionals who found their dream jobs through JobsMV
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center h-[52px] px-8 rounded-pill bg-white text-[#48A8FF] font-bold hover:bg-gray-100 transition-colors shadow-lg"
-            >
-              Create Free Account
-            </Link>
-            <Link
-              href="/jobs"
-              className="inline-flex items-center justify-center h-[52px] px-8 rounded-pill bg-transparent text-white font-bold border-2 border-white hover:bg-white/10 transition-colors"
-            >
-              Browse All Jobs
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-[#0E1116] text-white py-12">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#48A8FF] to-[#0056B3] flex items-center justify-center">
-                  <BriefcaseIcon className="w-5 h-5 text-white" />
-                </div>
-                <span
-                  className="text-xl font-bold"
-                  style={{ fontFamily: "var(--font-display)" }}
+          {/* Right Side - Job Listings */}
+          <main>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-primary mb-1" style={{ fontFamily: "var(--font-display)" }}>
+                  Recommended jobs
+                </h1>
+                <p className="text-sm text-muted">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--chip-bg)] text-primary text-xs font-bold mr-2">
+                    {jobs.length}
+                  </span>
+                  jobs found
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted">Sort by:</span>
+                <button 
+                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-[var(--cta-solid)] transition-colors focus-ring"
+                  aria-label="Sort by last updated"
                 >
-                  JobsMV
-                </span>
+                  Last updated
+                  <SlidersHorizontalIcon className="w-4 h-4" aria-hidden="true" />
+                </button>
               </div>
-              <p className="text-[#BAC1CC] text-sm leading-relaxed">
-                Your trusted partner in finding the perfect career opportunity.
-              </p>
             </div>
 
-            <div>
-              <h4 className="font-semibold mb-4">For Job Seekers</h4>
-              <ul className="space-y-2 text-sm text-[#BAC1CC]">
-                <li>
-                  <Link href="/jobs" className="hover:text-white transition-colors">
-                    Browse Jobs
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register" className="hover:text-white transition-colors">
-                    Create Profile
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/jobs" className="hover:text-white transition-colors">
-                    Job Alerts
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            {/* Job Cards Grid */}
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-muted">Loading jobs...</div>
+              </div>
+            ) : jobs.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-muted">No jobs found.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {jobs.map((job, index) => (
+                  <Link key={job.id} href={`/jobs/${job.id}`} className="focus-ring">
+                    <div className={`job-card ${getJobCardColor(index)} hover:scale-[1.02] transition-transform cursor-pointer`}>
+                      {/* Date */}
+                      <div className="flex items-center justify-between">
+                        <div className="job-card__meta">
+                          <ClockIcon className="w-3 h-3" />
+                          <span>{new Date(job.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        </div>
+                        <button className="icon-button focus-ring" aria-label="Bookmark job">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                          </svg>
+                        </button>
+                      </div>
 
-            <div>
-              <h4 className="font-semibold mb-4">For Employers</h4>
-              <ul className="space-y-2 text-sm text-[#BAC1CC]">
-                <li>
-                  <Link href="/login" className="hover:text-white transition-colors">
-                    Post a Job
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/login" className="hover:text-white transition-colors">
-                    Employer Dashboard
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register" className="hover:text-white transition-colors">
-                    Sign Up
-                  </Link>
-                </li>
-              </ul>
-            </div>
+                      {/* Company & Title */}
+                      <div>
+                        <div className="text-sm font-semibold text-secondary mb-1">
+                          {job.employer_id.substring(0, 8)}
+                        </div>
+                        <h3 className="job-card__title">
+                          {job.title}
+                        </h3>
+                      </div>
 
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-[#BAC1CC]">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    About Us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Contact
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Privacy Policy
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
+                      {/* Company Logo Placeholder */}
+                      <div className="flex justify-end -mt-2">
+                        <div className="w-12 h-12 rounded-xl bg-[var(--control-fill-muted)] flex items-center justify-center shadow-sm">
+                          <BriefcaseIcon className="w-6 h-6 text-primary" />
+                        </div>
+                      </div>
 
-          <div className="pt-8 border-t border-white/10 text-center text-sm text-[#BAC1CC]">
-            <p>© {new Date().getFullYear()} JobsMV. All rights reserved.</p>
-          </div>
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-2">
+                        {job.location && (
+                          <span className="chip">
+                            {job.location}
+                          </span>
+                        )}
+                        {job.tags?.slice(0, 2).map((tag) => (
+                          <span key={tag} className="chip">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Salary & Location */}
+                      <div className="flex items-center justify-between pt-2 border-t border-subtle">
+                        <div>
+                          {job.salary_min && job.salary_max && (
+                            <div className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-numeric)" }}>
+                              ${job.salary_min.toLocaleString()}/hr
+                            </div>
+                          )}
+                          {job.location && (
+                            <div className="text-xs text-secondary mt-0.5">
+                              {job.location}
+                            </div>
+                          )}
+                        </div>
+                        <button className="inline-flex items-center justify-center h-9 px-4 rounded-pill bg-[var(--color-ink)] text-[var(--dark-header-text)] text-sm font-semibold hover:opacity-90 transition-opacity focus-ring" aria-label="View job details">
+                          Details
+                        </button>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </main>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
