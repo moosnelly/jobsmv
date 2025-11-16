@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { Job, Category } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
+import UserDropdown from "@/components/UserDropdown";
 
 const accentColors = ["peach", "mint", "lilac", "blue"] as const;
 
@@ -96,7 +97,7 @@ export default function HomePage() {
                 className="text-lg font-bold"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                LuckyJob
+                JobsMv
               </span>
             </Link>
 
@@ -144,9 +145,7 @@ export default function HomePage() {
                 <span className="hidden sm:inline">New York, NY</span>
                 <ChevronDownIcon className="w-4 h-4" aria-hidden="true" />
               </button>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--cta-solid)] to-[var(--cta-solid-hover)] flex items-center justify-center">
-                <UserIcon className="w-4 h-4 text-[var(--dark-header-text)]" aria-hidden="true" />
-              </div>
+              <UserDropdown />
               <button 
                 className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
                 aria-label="Settings"
@@ -186,7 +185,7 @@ export default function HomePage() {
                   id="work-location"
                   value={workLocation}
                   onChange={(e) => setWorkLocation(e.target.value)}
-                  className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none pr-8 focus-ring"
+                  className="flex items-center gap-2 pl-10 pr-8 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
                 >
                   <option value="">Work location</option>
                   <option value="remote">Remote</option>
@@ -204,7 +203,7 @@ export default function HomePage() {
                   id="experience-level"
                   value={experienceLevel}
                   onChange={(e) => setExperienceLevel(e.target.value)}
-                  className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none pr-8 focus-ring"
+                  className="flex items-center gap-2 pl-10 pr-8 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
                 >
                   <option value="">Experience</option>
                   <option value="entry">Entry level</option>
@@ -220,7 +219,7 @@ export default function HomePage() {
                 <label htmlFor="payment-type" className="sr-only">Payment type</label>
                 <select
                   id="payment-type"
-                  className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none pr-8 focus-ring"
+                  className="flex items-center gap-2 pl-10 pr-8 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
                 >
                   <option value="monthly">Per month</option>
                   <option value="hourly">Per hour</option>
@@ -266,7 +265,7 @@ export default function HomePage() {
           {/* Left Sidebar - Filters */}
           <aside className="space-y-6">
             {/* Promotional Card */}
-            <div className="bg-[var(--dark-header-bg)] text-[var(--dark-header-text)] rounded-card p-6 relative overflow-hidden">
+            <div className="sticky top-8 bg-[var(--dark-header-bg)] text-[var(--dark-header-text)] rounded-card p-6 relative overflow-hidden">
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--cta-solid)] rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-[var(--color-accent-card-3)] rounded-full blur-2xl" />
@@ -276,7 +275,7 @@ export default function HomePage() {
                   className="text-xl font-bold mb-3 leading-tight"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Get Your best profession with LuckyJob
+                  Get Your best profession with JobsMv
                 </h3>
                 <button className="button-cta w-full mt-4">
                   Learn more
@@ -285,7 +284,7 @@ export default function HomePage() {
             </div>
 
             {/* Filters */}
-            <div className="bg-surface rounded-card p-5 shadow-card border border-subtle">
+            <div className="sticky top-[200px] bg-surface rounded-card p-5 shadow-card border border-subtle">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-display)" }}>
                   Filters
@@ -355,9 +354,9 @@ export default function HomePage() {
                 </h1>
                 <p className="text-sm text-muted">
                   <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[var(--chip-bg)] text-primary text-xs font-bold mr-2">
-                    {jobs.length}
+                    {Math.min(jobs.length, 9)}
                   </span>
-                  jobs found
+                  {jobs.length > 9 ? "recommended jobs" : "jobs found"}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -382,76 +381,92 @@ export default function HomePage() {
                 <p className="text-muted">No jobs found.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {jobs.map((job, index) => (
-                  <Link key={job.id} href={`/jobs/${job.id}`} className="focus-ring">
-                    <div className={`job-card ${getJobCardColor(index)} hover:scale-[1.02] transition-transform cursor-pointer`}>
-                      {/* Date */}
-                      <div className="flex items-center justify-between">
-                        <div className="job-card__meta">
-                          <ClockIcon className="w-3 h-3" />
-                          <span>{new Date(job.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</span>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {jobs.slice(0, 9).map((job, index) => (
+                    <Link key={job.id} href={`/jobs/${job.id}`} className="focus-ring">
+                      <div className={`job-card ${getJobCardColor(index)} hover:scale-[1.02] transition-transform cursor-pointer`}>
+                        {/* Date */}
+                        <div className="flex items-center justify-between">
+                          <div className="job-card__meta">
+                            <ClockIcon className="w-3 h-3" />
+                            <span>{new Date(job.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          </div>
+                          <button className="icon-button focus-ring" aria-label="Bookmark job">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                          </button>
                         </div>
-                        <button className="icon-button focus-ring" aria-label="Bookmark job">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                          </svg>
-                        </button>
-                      </div>
 
-                      {/* Company & Title */}
-                      <div>
-                        <div className="text-sm font-semibold text-secondary mb-1">
-                          {job.employer_id.substring(0, 8)}
-                        </div>
-                        <h3 className="job-card__title">
-                          {job.title}
-                        </h3>
-                      </div>
-
-                      {/* Company Logo Placeholder */}
-                      <div className="flex justify-end -mt-2">
-                        <div className="w-12 h-12 rounded-xl bg-[var(--control-fill-muted)] flex items-center justify-center shadow-sm">
-                          <BriefcaseIcon className="w-6 h-6 text-primary" />
-                        </div>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-2">
-                        {job.location && (
-                          <span className="chip">
-                            {job.location}
-                          </span>
-                        )}
-                        {job.tags?.slice(0, 2).map((tag) => (
-                          <span key={tag} className="chip">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Salary & Location */}
-                      <div className="flex items-center justify-between pt-2 border-t border-subtle">
+                        {/* Company & Title */}
                         <div>
-                          {job.salary_min && job.salary_max && (
-                            <div className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-numeric)" }}>
-                              ${job.salary_min.toLocaleString()}/hr
+                          {job.employer_company_name && (
+                            <div className="text-sm font-semibold text-secondary mb-1">
+                              {job.employer_company_name}
                             </div>
                           )}
-                          {job.location && (
-                            <div className="text-xs text-secondary mt-0.5">
-                              {job.location}
-                            </div>
-                          )}
+                          <h3 className="job-card__title">
+                            {job.title}
+                          </h3>
                         </div>
-                        <button className="inline-flex items-center justify-center h-9 px-4 rounded-pill bg-[var(--color-ink)] text-[var(--dark-header-text)] text-sm font-semibold hover:opacity-90 transition-opacity focus-ring" aria-label="View job details">
-                          Details
-                        </button>
+
+                        {/* Company Logo Placeholder */}
+                        <div className="flex justify-end -mt-2">
+                          <div className="w-12 h-12 rounded-xl bg-[var(--control-fill-muted)] flex items-center justify-center shadow-sm">
+                            <BriefcaseIcon className="w-6 h-6 text-primary" />
+                          </div>
+                        </div>
+
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-2">
+                          {job.location && (
+                            <span className="chip">
+                              {job.location}
+                            </span>
+                          )}
+                          {job.tags?.slice(0, 2).map((tag) => (
+                            <span key={tag} className="chip">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Salary & Location */}
+                        <div className="flex items-center justify-between pt-2 border-t border-subtle">
+                          <div>
+                            {job.salary_min && job.salary_max && (
+                              <div className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-numeric)" }}>
+                                ${job.salary_min.toLocaleString()}/hr
+                              </div>
+                            )}
+                            {job.location && (
+                              <div className="text-xs text-secondary mt-0.5">
+                                {job.location}
+                              </div>
+                            )}
+                          </div>
+                          <button className="inline-flex items-center justify-center h-9 px-4 rounded-pill bg-[var(--color-ink)] text-[var(--dark-header-text)] text-sm font-semibold hover:opacity-90 transition-opacity focus-ring" aria-label="View job details">
+                            Details
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+                
+                {/* View More Button */}
+                {jobs.length > 9 && (
+                  <div className="flex justify-center mt-8">
+                    <Link
+                      href="/jobs"
+                      className="inline-flex items-center justify-center h-12 px-8 rounded-pill bg-[var(--cta-solid)] text-[var(--dark-header-text)] text-sm font-semibold hover:bg-[var(--cta-solid-hover)] transition-colors focus-ring"
+                    >
+                      View More Jobs
+                    </Link>
+                  </div>
+                )}
+              </>
             )}
           </main>
         </div>
