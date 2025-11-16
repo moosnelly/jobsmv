@@ -1,9 +1,10 @@
 from typing import Optional
 import redis.asyncio as redis
 import structlog
-from datetime import timedelta
+import time
 
 from app.core.config import settings
+from app.utils.idempotency import get_redis
 
 logger = structlog.get_logger(__name__)
 
@@ -17,21 +18,27 @@ async def check_rate_limit(
     """
     r = await get_redis()
     key = f"rate_limit:{identifier}"
-    now = timedelta(seconds=window_seconds)
+    now = time.time()
+    window_start = now - window_seconds
 
-    # Remove old entries
-    await r.zremrangebyscore(key, 0, f"-{window_seconds}")
+    try:
+        # Remove old entries (older than window_seconds ago)
+        await r.zremrangebyscore(key, "-inf", window_start)
 
-    # Count current requests
-    current = await r.zcard(key)
+        # Count current requests in the window
+        current = await r.zcard(key)
 
-    if current >= limit:
-        return False, 0
+        if current >= limit:
+            return False, 0
 
-    # Add current request
-    await r.zadd(key, {str(now.total_seconds()): now.total_seconds()})
-    await r.expire(key, window_seconds)
+        # Add current request with current timestamp as score
+        await r.zadd(key, {str(now): now})
+        await r.expire(key, window_seconds)
 
-    remaining = limit - current - 1
-    return True, remaining
+        remaining = limit - current - 1
+        return True, remaining
+    except Exception as e:
+        logger.error("Rate limit check failed", error=str(e), identifier=identifier)
+        # Fail open - allow request if Redis is unavailable
+        return True, limit
 

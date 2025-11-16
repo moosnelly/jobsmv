@@ -29,6 +29,10 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    if (typeof window === "undefined") {
+      throw new Error("API client can only be used in the browser");
+    }
+
     const url = `${this.baseUrl}${endpoint}`;
     const headers: HeadersInit = {
       "Content-Type": "application/json",
@@ -39,18 +43,74 @@ class ApiClient {
       headers.Authorization = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: "include",
+        mode: "cors",
+      });
+    } catch (error: unknown) {
+      // Handle network errors (server not running, CORS, etc.)
+      let errorMessage = "Failed to connect to the API server";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error instanceof TypeError) {
+        errorMessage = error.message || "Network request failed (possibly CORS or server unreachable)";
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else if (error && typeof error === "object") {
+        const errorObj = error as Record<string, unknown>;
+        errorMessage = String(errorObj.message || errorObj.toString() || "Unknown network error");
+      }
+      
+      const networkError: ApiError = {
+        type: "network_error",
+        title: "Network error",
+        status: 0,
+        detail: `${errorMessage}. Please ensure the API server is running at ${this.baseUrl} and CORS is properly configured.`,
+      };
+      
+      throw networkError;
+    }
 
     if (!response.ok) {
-      const error: ApiError = await response.json().catch(() => ({
-        type: "unknown",
-        title: "Request failed",
-        status: response.status,
-        detail: response.statusText,
-      }));
+      let error: ApiError;
+      try {
+        const errorData = await response.json();
+        // Handle FastAPI validation errors (array of errors)
+        if (Array.isArray(errorData.detail)) {
+          const validationErrors = errorData.detail
+            .map((err: any) => `${err.loc?.join(".") || "field"}: ${err.msg}`)
+            .join(", ");
+          error = {
+            type: "validation_error",
+            title: "Validation failed",
+            status: response.status,
+            detail: validationErrors,
+          };
+        }
+        // Handle FastAPI error format (can be {"detail": "..."} or full ProblemDetail)
+        else if (errorData.detail && !errorData.type) {
+          error = {
+            type: "http_error",
+            title: "Request failed",
+            status: response.status,
+            detail: typeof errorData.detail === "string" ? errorData.detail : JSON.stringify(errorData.detail),
+          };
+        } else {
+          error = errorData as ApiError;
+        }
+      } catch {
+        error = {
+          type: "unknown",
+          title: "Request failed",
+          status: response.status,
+          detail: response.statusText,
+        };
+      }
       throw error;
     }
 
@@ -64,13 +124,15 @@ class ApiClient {
     password: string;
     contact_info?: Record<string, unknown>;
   }) {
-    return this.request<{ access_token: string; token_type: string; employer_id: string }>(
+    const result = await this.request<{ access_token: string; token_type: string; employer_id: string }>(
       "/auth/register",
       {
         method: "POST",
         body: JSON.stringify(data),
       }
     );
+    this.setToken(result.access_token);
+    return result;
   }
 
   async login(email: string, password: string) {

@@ -36,7 +36,9 @@ export default function RegisterPage() {
       });
       router.push("/dashboard/jobs");
     } catch (err: any) {
-      setError(err.detail || "Registration failed. Please try again.");
+      // Handle FastAPI error responses
+      const errorMessage = err?.detail || err?.message || "Registration failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,8 @@ import { apiClient } from "./api-client";
 
 export function useAuth() {
   const isAuthenticated = () => {
-    return !!apiClient["token"];
+    if (typeof window === "undefined") return false;
+    return !!localStorage.getItem("auth_token");
   };
 
   const login = async (email: string, password: string) => {
