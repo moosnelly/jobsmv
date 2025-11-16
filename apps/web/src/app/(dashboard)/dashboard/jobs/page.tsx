@@ -78,12 +78,16 @@ export default function DashboardJobsPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
-          {jobs.map((job) => (
-            <Link key={job.id} href={`/dashboard/jobs/${job.id}/edit`}>
-              <JobCard job={job} />
-            </Link>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {jobs.map((job, index) => {
+            const accentColors = ["peach", "mint", "lilac", "blue"] as const;
+            const accentColor = accentColors[index % accentColors.length] as "peach" | "mint" | "lilac" | "blue";
+            return (
+              <Link key={job.id} href={`/dashboard/jobs/${job.id}/edit`} className="focus-ring">
+                <JobCard job={job} accentColor={accentColor} />
+              </Link>
+            );
+          })}
         </div>
       )}
     </DashboardShell>

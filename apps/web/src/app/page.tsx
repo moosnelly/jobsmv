@@ -15,7 +15,10 @@ import {
 } from "lucide-react";
 import type { Job, Category } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
+import { useAuth } from "@/lib/auth";
 import UserDropdown from "@/components/UserDropdown";
+import ProfileSettingsPanel from "@/components/ProfileSettingsPanel";
+import { JobCard } from "@jobsmv/ui-tripled";
 
 const accentColors = ["peach", "mint", "lilac", "blue"] as const;
 
@@ -39,7 +42,11 @@ export default function HomePage() {
     projectWork: false,
     volunteering: false,
   });
-  
+
+  // Settings panel state
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const { isAuthenticated } = useAuth();
+
   const [employmentType, setEmploymentType] = useState({
     fullDay: true,
     flexibleSchedule: true,
@@ -146,12 +153,15 @@ export default function HomePage() {
                 <ChevronDownIcon className="w-4 h-4" aria-hidden="true" />
               </button>
               <UserDropdown />
-              <button 
-                className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
-                aria-label="Settings"
-              >
-                <SettingsIcon className="w-4 h-4" />
-              </button>
+              {isAuthenticated() && (
+                <button
+                  onClick={() => setShowSettingsPanel(true)}
+                  className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
+                  aria-label="Settings"
+                >
+                  <SettingsIcon className="w-4 h-4" />
+                </button>
+              )}
               <button 
                 className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
                 aria-label="Notifications"
@@ -383,76 +393,18 @@ export default function HomePage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {jobs.slice(0, 9).map((job, index) => (
-                    <Link key={job.id} href={`/jobs/${job.id}`} className="focus-ring">
-                      <div className={`job-card ${getJobCardColor(index)} hover:scale-[1.02] transition-transform cursor-pointer`}>
-                        {/* Date */}
-                        <div className="flex items-center justify-between">
-                          <div className="job-card__meta">
-                            <ClockIcon className="w-3 h-3" />
-                            <span>{new Date(job.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</span>
-                          </div>
-                          <button className="icon-button focus-ring" aria-label="Bookmark job">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                            </svg>
-                          </button>
-                        </div>
-
-                        {/* Company & Title */}
-                        <div>
-                          {job.employer_company_name && (
-                            <div className="text-sm font-semibold text-secondary mb-1">
-                              {job.employer_company_name}
-                            </div>
-                          )}
-                          <h3 className="job-card__title">
-                            {job.title}
-                          </h3>
-                        </div>
-
-                        {/* Company Logo Placeholder */}
-                        <div className="flex justify-end -mt-2">
-                          <div className="w-12 h-12 rounded-xl bg-[var(--control-fill-muted)] flex items-center justify-center shadow-sm">
-                            <BriefcaseIcon className="w-6 h-6 text-primary" />
-                          </div>
-                        </div>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2">
-                          {job.location && (
-                            <span className="chip">
-                              {job.location}
-                            </span>
-                          )}
-                          {job.tags?.slice(0, 2).map((tag) => (
-                            <span key={tag} className="chip">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Salary & Location */}
-                        <div className="flex items-center justify-between pt-2 border-t border-subtle">
-                          <div>
-                            {job.salary_min && job.salary_max && (
-                              <div className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-numeric)" }}>
-                                ${job.salary_min.toLocaleString()}/hr
-                              </div>
-                            )}
-                            {job.location && (
-                              <div className="text-xs text-secondary mt-0.5">
-                                {job.location}
-                              </div>
-                            )}
-                          </div>
-                          <button className="inline-flex items-center justify-center h-9 px-4 rounded-pill bg-[var(--color-ink)] text-[var(--dark-header-text)] text-sm font-semibold hover:opacity-90 transition-opacity focus-ring" aria-label="View job details">
-                            Details
-                          </button>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                  {jobs.slice(0, 9).map((job, index) => {
+                    const accentColor = accentColors[index % accentColors.length] as "peach" | "mint" | "lilac" | "blue";
+                    return (
+                      <Link key={job.id} href={`/jobs/${job.id}`} className="focus-ring">
+                        <JobCard 
+                          job={job} 
+                          accentColor={accentColor}
+                          className="hover:scale-[1.02] transition-transform"
+                        />
+                      </Link>
+                    );
+                  })}
                 </div>
                 
                 {/* View More Button */}
@@ -471,6 +423,12 @@ export default function HomePage() {
           </main>
         </div>
       </div>
+
+      {/* Profile Settings Panel */}
+      <ProfileSettingsPanel
+        isOpen={showSettingsPanel}
+        onClose={() => setShowSettingsPanel(false)}
+      />
     </div>
   );
 }

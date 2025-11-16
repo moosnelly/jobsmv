@@ -385,33 +385,44 @@
       "name": "JobCard",
       "role": "Prominent job listing card seen in grid",
       "anatomy": [
-        "Container",
-        "MetaBar(date)",
-        "Company",
-        "Title",
-        "ChipGroup",
-        "PriceRow",
-        "LocationRow",
-        "ActionRow(Details button, Bookmark)"
+        "Container (fixed height)",
+        "TopSection (accent background)",
+        "  - Header (date, bookmark)",
+        "  - Company name",
+        "  - Title row (title, logo)",
+        "  - ChipGroup (tags)",
+        "BottomSection (white background)",
+        "  - Info (salary, location)",
+        "  - Details button"
       ],
       "variants": ["accent-peach", "accent-mint", "accent-lilac", "accent-blue"],
       "sizes": ["md"],
       "tokens": {
         "radius": "card",
-        "padding": 20,
+        "minHeight": 320,
+        "height": "100%",
+        "topSection.padding": 20,
+        "bottomSection.padding": 20,
         "bg.accent-1": "accent.card-1",
         "bg.accent-2": "accent.card-2",
         "bg.accent-3": "accent.card-3",
         "bg.accent-4": "accent.card-4",
+        "bg.bottom": "bg.surface",
         "title.type": "h3",
         "company.type": "body-sm",
         "price.type": "h4",
         "shadow": "card"
       },
+      "layout": {
+        "structure": "Two-section layout: top accent-colored section with rounded top corners, bottom white section",
+        "topSection": "Contains date/bookmark header, company name, job title with logo, and tags",
+        "bottomSection": "Contains salary with icon, location with icon, and Details button"
+      },
       "states": ["default", "hover", "focusWithin"],
       "a11y": [
         "Entire card should be keyboard-focusable if it acts as a link",
-        "Bookmark must be operable with keyboard and screen readers"
+        "Bookmark must be operable with keyboard and screen readers",
+        "Details button must have proper aria-label"
       ]
     },
     {

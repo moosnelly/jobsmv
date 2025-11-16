@@ -718,7 +718,7 @@
     },
 
     "JobCard": {
-      "description": "Prominent job listing card with accent background",
+      "description": "Prominent job listing card with two-section layout: top accent background section and bottom white section. All cards have fixed height for uniformity.",
       "cssClass": "job-card",
       "variants": {
         "peach": "job-card job-card--peach",
@@ -726,25 +726,42 @@
         "lilac": "job-card job-card--lilac",
         "blue": "job-card job-card--blue"
       },
+      "layout": {
+        "structure": "Two-section layout with fixed height (min-height: 320px, height: 100%)",
+        "topSection": "job-card__top - accent-colored background with rounded top corners, contains header, company, title, logo, and tags",
+        "bottomSection": "job-card__bottom - white background, contains salary, location, and Details button"
+      },
       "anatomy": {
-        "metaBar": "job-card__meta - displays date with calendar icon",
-        "bookmark": "icon-button positioned top-right",
-        "company": "job-card__company - company name (14px, text-secondary, font-semibold)",
-        "title": "job-card__title - job title (24px, bold, display font)",
-        "chipGroup": "job-card__chips - flex wrap gap-2 with chip elements",
-        "price": "DollarSignIcon + price text (20px, bold, numeric font)",
-        "location": "MapPinIcon + location text (14px, text-secondary)",
-        "footer": "job-card__footer - contains View Details button"
+        "topSection": {
+          "header": "job-card__header - flex container with date (job-card__meta) and bookmark button",
+          "metaBar": "job-card__meta - displays date with calendar icon",
+          "bookmark": "icon-button positioned top-right",
+          "company": "job-card__company - company name (14px, text-secondary, font-semibold)",
+          "titleRow": "job-card__title-row - flex container with title and logo",
+          "title": "job-card__title - job title (24px, bold, display font)",
+          "logo": "job-card__logo - circular logo placeholder (48x48px)",
+          "chipGroup": "job-card__chips - flex wrap gap-2 with chip elements"
+        },
+        "bottomSection": {
+          "info": "job-card__info - flex column container for salary and location",
+          "salary": "job-card__salary - DollarSignIcon + price text (20px, bold, numeric font)",
+          "location": "job-card__location - MapPinIcon + location text (14px, text-secondary)",
+          "detailsButton": "job-card__details-button - black rounded button with 'Details' text"
+        }
       },
       "implementation": {
         "container": "job-card job-card--[accent]",
-        "grid": "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+        "fixedHeight": "min-height: 320px, height: 100% for uniform card sizes",
+        "grid": "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6",
+        "hover": "scale(1.02) with enhanced shadow"
       },
       "accessibility": [
         "Ensure bookmark button has aria-label=\"Bookmark job\"",
-        "Use aria-pressed for bookmark toggle state"
+        "Use aria-pressed for bookmark toggle state",
+        "Details button must have aria-label=\"View job details\"",
+        "Entire card should be keyboard-focusable if it acts as a link"
       ],
-      "codeExample": "See apps/web/src/app/design-system/page.tsx lines 498-727"
+      "codeExample": "See packages/ui-tripled/src/JobCard.tsx"
     },
 
     "StatCard": {
@@ -1054,8 +1071,8 @@
 
   "examples": {
     "createJobCard": {
-      "description": "Complete example of creating a job card",
-      "code": "import { BookmarkIcon, CalendarIcon, DollarSignIcon, MapPinIcon } from 'lucide-react';\n\n<div className=\"job-card job-card--mint\">\n  <div className=\"flex items-center justify-between\">\n    <span className=\"job-card__meta\">\n      <CalendarIcon className=\"w-3 h-3\" />\n      20 May, 2023\n    </span>\n    <button className=\"icon-button\" aria-label=\"Bookmark job\">\n      <BookmarkIcon className=\"w-4 h-4\" />\n    </button>\n  </div>\n  <div>\n    <p className=\"job-card__company\">Google Inc.</p>\n    <h3 className=\"job-card__title\">Senior Product Designer</h3>\n  </div>\n  <div className=\"job-card__chips\">\n    <span className=\"chip\">Full-time</span>\n    <span className=\"chip\">Senior level</span>\n  </div>\n  <div className=\"space-y-2\">\n    <div className=\"flex items-center gap-2\">\n      <DollarSignIcon className=\"w-4 h-4 text-muted\" />\n      <span className=\"text-xl font-bold text-primary\" style={{ fontFamily: 'var(--font-numeric)' }}>\n        $250/hr\n      </span>\n    </div>\n    <div className=\"flex items-center gap-2\">\n      <MapPinIcon className=\"w-4 h-4 text-muted\" />\n      <span className=\"text-sm text-secondary\">San Francisco, CA</span>\n    </div>\n  </div>\n  <div className=\"job-card__footer\">\n    <button className=\"button-cta flex-1\">\n      View Details\n    </button>\n  </div>\n</div>"
+      "description": "Complete example of creating a job card with two-section layout",
+      "code": "import { JobCard } from '@jobsmv/ui-tripled';\nimport type { Job } from '@jobsmv/types';\n\n// Using the component directly\n<JobCard \n  job={job} \n  accentColor=\"mint\" \n  onClick={() => router.push(`/jobs/${job.id}`)}\n/>\n\n// Or using the structure manually:\nimport { BookmarkIcon, CalendarIcon, DollarSignIcon, MapPinIcon, BriefcaseIcon } from 'lucide-react';\n\n<div className=\"job-card job-card--mint\">\n  {/* Top Section - Accent Background */}\n  <div className=\"job-card__top\">\n    <div className=\"job-card__header\">\n      <div className=\"job-card__meta\">\n        <CalendarIcon className=\"w-3 h-3\" />\n        <span>20 May, 2023</span>\n      </div>\n      <button className=\"icon-button focus-ring\" aria-label=\"Bookmark job\">\n        <BookmarkIcon className=\"w-4 h-4\" />\n      </button>\n    </div>\n    <p className=\"job-card__company\">Google Inc.</p>\n    <div className=\"job-card__title-row\">\n      <h3 className=\"job-card__title\">Senior Product Designer</h3>\n      <div className=\"job-card__logo\">\n        <BriefcaseIcon className=\"w-6 h-6\" />\n      </div>\n    </div>\n    <div className=\"job-card__chips\">\n      <span className=\"chip\">Full-time</span>\n      <span className=\"chip\">Senior level</span>\n    </div>\n  </div>\n  {/* Bottom Section - White Background */}\n  <div className=\"job-card__bottom\">\n    <div className=\"job-card__info\">\n      <div className=\"job-card__salary\">\n        <DollarSignIcon className=\"w-4 h-4\" />\n        <span style={{ fontFamily: 'var(--font-numeric)' }}>$250/hr</span>\n      </div>\n      <div className=\"job-card__location\">\n        <MapPinIcon className=\"w-4 h-4\" />\n        <span>San Francisco, CA</span>\n      </div>\n    </div>\n    <button className=\"job-card__details-button focus-ring\" aria-label=\"View job details\">\n      Details\n    </button>\n  </div>\n</div>"
     },
     "createButton": {
       "primary": "<button className=\"inline-flex items-center justify-center h-10 px-4 rounded-pill bg-[#0E1116] text-white font-semibold hover:bg-[#0B1220] transition-colors focus-ring\">\n  Submit\n</button>",

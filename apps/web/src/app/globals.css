@@ -232,14 +232,41 @@ body {
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    padding: 20px;
-    display: grid;
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 320px;
+    height: 100%;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .job-card--peach { background: var(--color-accent-card-1); }
-  .job-card--mint { background: var(--color-accent-card-2); }
-  .job-card--lilac { background: var(--color-accent-card-3); }
-  .job-card--blue { background: var(--color-accent-card-4); }
+  .job-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(2,6,23,0.12);
+  }
+  
+  /* Accent color variants - applied to top section */
+  .job-card--peach .job-card__top { background: var(--color-accent-card-1); }
+  .job-card--mint .job-card__top { background: var(--color-accent-card-2); }
+  .job-card--lilac .job-card__top { background: var(--color-accent-card-3); }
+  .job-card--blue .job-card__top { background: var(--color-accent-card-4); }
+
+  /* Top Section - Accent Background */
+  .job-card__top {
+    padding: 20px;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  /* Header: Date and Bookmark */
+  .job-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
   .job-card__meta {
     display: inline-flex;
@@ -254,6 +281,23 @@ body {
     line-height: 16px;
     font-weight: 700;
   }
+
+  /* Company Name */
+  .job-card__company {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* Title Row: Job Title and Logo */
+  .job-card__title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
   .job-card__title {
     font-family: var(--font-display);
     font-size: 24px;
@@ -261,15 +305,103 @@ body {
     font-weight: 700;
     letter-spacing: -0.01em;
     color: var(--text-primary);
+    flex: 1;
   }
-  .job-card__company {
+
+  .job-card__logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--control-fill-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(2,6,23,0.1);
+  }
+  .job-card__logo svg {
+    color: var(--text-primary);
+  }
+
+  /* Tags/Chips */
+  .job-card__chips { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+  }
+
+  /* Bottom Section - White Background */
+  .job-card__bottom {
+    background: var(--bg-surface);
+    padding: 20px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .job-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .job-card__salary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .job-card__salary svg {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .job-card__location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 14px;
     line-height: 20px;
     color: var(--text-secondary);
-    font-weight: 600;
   }
-  .job-card__chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .job-card__footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .job-card__location svg {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .job-card__details-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding-inline: 16px;
+    border-radius: var(--radius-pill);
+    background: var(--color-ink);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+  }
+  .job-card__details-button:hover {
+    opacity: 0.9;
+  }
+  .job-card__details-button:focus-visible {
+    outline: 2px solid var(--cta-solid);
+    outline-offset: 2px;
+  }
 
   .toolbar {
     backdrop-filter: saturate(180%) blur(8px);

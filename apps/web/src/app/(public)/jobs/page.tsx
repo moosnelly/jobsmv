@@ -92,12 +92,16 @@ export default function JobsPage() {
                 <p className="text-gray-500">No jobs found.</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {jobs.map((job) => (
-                  <Link key={job.id} href={`/jobs/${job.id}`}>
-                    <JobCard job={job} />
-                  </Link>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {jobs.map((job, index) => {
+                  const accentColors = ["peach", "mint", "lilac", "blue"] as const;
+                  const accentColor = accentColors[index % accentColors.length] as "peach" | "mint" | "lilac" | "blue";
+                  return (
+                    <Link key={job.id} href={`/jobs/${job.id}`} className="focus-ring">
+                      <JobCard job={job} accentColor={accentColor} />
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
