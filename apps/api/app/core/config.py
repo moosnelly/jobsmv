@@ -14,6 +14,18 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def convert_database_url(cls, v: str) -> str:
+        """Convert postgresql:// to postgresql+asyncpg:// for async support."""
+        if v and v.startswith("postgresql://"):
+            url = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            # asyncpg uses ssl parameter instead of sslmode
+            if "sslmode=" in url:
+                url = url.replace("sslmode=", "ssl=")
+            return url
+        return v
+
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
 
@@ -38,8 +50,8 @@ class Settings(BaseSettings):
     JWT_AUD: str = "jobsmv-api"
     JWT_ISS: str = "jobsmv-auth"
     JWT_ALGORITHM: str = "RS256"
-    JWKS_PRIVATE_KEY_PATH: str = "/app/keys/jwt-private.pem"
-    JWKS_PUBLIC_KEY_PATH: str = "/app/keys/jwt-public.pem"
+    JWKS_PRIVATE_KEY_PATH: str = "apps/api/keys/jwt-private.pem"
+    JWKS_PUBLIC_KEY_PATH: str = "apps/api/keys/jwt-public.pem"
     JWKS_KID: str = "jobsmv-key-1"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 
