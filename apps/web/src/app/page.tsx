@@ -47,7 +47,7 @@ export default function HomePage() {
                 className="text-xl font-bold text-primary"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                LuckyJob
+                JobsMV
               </span>
             </Link>
 
@@ -378,7 +378,7 @@ export default function HomePage() {
               className="text-4xl font-bold text-primary mb-6"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Why Job Seekers Love LuckyJob
+              Why Job Seekers Love JobsMV
             </h2>
             <p className="text-lg text-secondary mb-8">
               We're not just another job board. We're your partner in career success.
@@ -443,7 +443,7 @@ export default function HomePage() {
                 <div className="space-y-4">
                   <div className="bg-white rounded-[16px] p-5 shadow-sm">
                     <p className="text-primary mb-3 leading-relaxed">
-                      "LuckyJob helped me land my dream job in just 2 weeks! The platform is so easy to use."
+                      "JobsMV helped me land my dream job in just 2 weeks! The platform is so easy to use."
                     </p>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#48A8FF] to-[#0056B3]" />
@@ -489,7 +489,7 @@ export default function HomePage() {
             Ready to Take the Next Step?
           </h2>
           <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-            Join thousands of professionals who found their dream jobs through LuckyJob
+            Join thousands of professionals who found their dream jobs through JobsMV
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -521,7 +521,7 @@ export default function HomePage() {
                   className="text-xl font-bold"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  LuckyJob
+                  JobsMV
                 </span>
               </div>
               <p className="text-[#BAC1CC] text-sm leading-relaxed">
@@ -594,7 +594,7 @@ export default function HomePage() {
           </div>
 
           <div className="pt-8 border-t border-white/10 text-center text-sm text-[#BAC1CC]">
-            <p>© 2024 LuckyJob. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} JobsMV. All rights reserved.</p>
           </div>
         </div>
       </footer>

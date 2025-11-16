@@ -54,7 +54,7 @@ export default function DesignSystemShowcase() {
                 <BriefcaseIcon className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-primary" style={{ fontFamily: "var(--font-display)" }}>
-                LuckyJob
+                JobsMV
               </span>
             </div>
 
@@ -906,7 +906,7 @@ export default function DesignSystemShowcase() {
                   <BriefcaseIcon className="w-4 h-4 text-white" />
                 </div>
                 <span className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-display)" }}>
-                  LuckyJob
+                  JobsMV
                 </span>
               </div>
               <p className="text-sm text-secondary">
@@ -940,7 +940,7 @@ export default function DesignSystemShowcase() {
           </div>
           <div className="border-t border-subtle mt-8 pt-8 text-center">
             <p className="text-sm text-muted">
-              © 2025 LuckyJob. All rights reserved. Built with ❤️ using the LuckyJob Design System.
+              © {new Date().getFullYear()} JobsMV. All rights reserved.
             </p>
           </div>
         </div>

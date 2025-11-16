@@ -1,7 +1,7 @@
 {
   "meta": {
-    "system": "LuckyJob Design System - Implementation Guide",
-    "shortName": "LuckyJob DS",
+    "system": "JobsMV Design System - Implementation Guide",
+    "shortName": "JobsMV DS",
     "version": "1.0.0",
     "created": "2025-11-13",
     "purpose": "Comprehensive design system documentation for AI-assisted feature development",
@@ -11,7 +11,7 @@
   },
 
   "overview": {
-    "description": "LuckyJob is a modern job listing platform with an optimistic, trustworthy design language. This design system provides exact styling specifications and implementation patterns for building consistent features.",
+    "description": "JobsMV is a modern job listing platform with an optimistic, trustworthy design language. This design system provides exact styling specifications and implementation patterns for building consistent features.",
     "designPrinciples": [
       "Modern & Clean - Use generous white space and soft rounded corners",
       "Optimistic & Welcoming - Leverage soft accent colors (peach, mint, lilac, blue)",
@@ -884,7 +884,7 @@
     },
 
     "Logo": {
-      "description": "LuckyJob brand logo with icon and text",
+      "description": "JobsMV brand logo with icon and text",
       "implementation": {
         "container": "flex items-center gap-3",
         "icon": "w-10 h-10 rounded-xl bg-gradient-to-br from-[#48A8FF] to-[#0056B3] flex items-center justify-center",
