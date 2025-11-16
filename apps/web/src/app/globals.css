@@ -432,5 +432,24 @@ body {
   .toolbar-search {
     width: min(420px, 100%);
   }
+
+  /* Dark header select dropdown styling */
+  /* Target select elements in the dark header */
+  header.bg-\[var\(--dark-header-bg\)\] select option {
+    background-color: var(--dark-header-bg);
+    color: var(--dark-header-text);
+    padding: 8px 16px;
+  }
+
+  /* Style selected option */
+  header.bg-\[var\(--dark-header-bg\)\] select option:checked {
+    background-color: var(--cta-solid);
+    color: var(--cta-on-cta);
+  }
+
+  /* Ensure options have proper contrast */
+  header.bg-\[var\(--dark-header-bg\)\] select option:hover:not(:checked) {
+    background-color: var(--dark-header-control-hover);
+  }
 }
 
