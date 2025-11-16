@@ -11,20 +11,16 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 6379
-externalPort = 80
-
-[[ports]]
 localPort = 8000
 externalPort = 8000
 
 [[ports]]
-localPort = 37281
-externalPort = 3000
+localPort = 37175
+externalPort = 3001
 
 [[ports]]
-localPort = 44985
-externalPort = 3002
+localPort = 37281
+externalPort = 3000
 
 [workflows]
 runButton = "Project"
@@ -46,13 +42,13 @@ args = "backend"
 name = "frontend"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd apps/web && npm run dev"
 waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow]]
 name = "backend"
