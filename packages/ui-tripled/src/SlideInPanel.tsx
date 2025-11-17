@@ -60,15 +60,15 @@ export function SlideInPanel({
             aria-hidden="true"
           />
           <motion.div
-            initial={{ x: 0 }}
+            initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: 0 }}
+            exit={{ x: "100%" }}
             transition={{
               type: "tween",
               duration: 0.3,
               ease: "easeInOut",
             }}
-            className={`fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-lg border-l border-gray-200 ${className}`}
+            className={`fixed inset-y-0 right-0 z-[60] w-full max-w-md bg-white shadow-lg border-l border-gray-200 ${className}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? "slide-panel-title" : undefined}
