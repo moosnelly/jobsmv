@@ -21,22 +21,26 @@ export default function ProfileSettingsPanel({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const { isAuthenticated } = useAuth();
+  const isAuthed = isAuthenticated();
 
   // Load employer data when panel opens
   useEffect(() => {
-    if (isOpen && isAuthenticated()) {
-      setLoading(true);
-      setError(null);
-      apiClient
-        .getCurrentEmployer()
-        .then(setEmployer)
-        .catch((err) => {
-          console.error("Failed to load employer:", err);
-          setError("Failed to load profile data");
-        })
-        .finally(() => setLoading(false));
+    if (!isOpen || !isAuthed) {
+      return;
     }
-  }, [isOpen]);
+
+    setLoading(true);
+    setError(null);
+
+    apiClient
+      .getCurrentEmployer()
+      .then(setEmployer)
+      .catch((err) => {
+        console.error("Failed to load employer:", err);
+        setError("Failed to load profile data");
+      })
+      .finally(() => setLoading(false));
+  }, [isOpen, isAuthed]);
 
   // Handle form submission
   const handleSubmit = async (data: Partial<Employer>) => {
