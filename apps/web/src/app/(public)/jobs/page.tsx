@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { JobCard, FiltersPanel } from "@jobsmv/ui-tripled";
-import type { Job, Category } from "@jobsmv/types";
+import type { JobPublic, Category } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
 
 export default function JobsPage() {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<JobPublic[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<{

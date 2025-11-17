@@ -1,4 +1,4 @@
-import type { Job, Application, Category, Employer, ApiError, Currency } from "@jobsmv/types";
+import type { Job, JobPublic, JobSalary, SupportedCurrency, Application, Category, Employer, ApiError } from "@jobsmv/types";
 
 export type AtollLocation = {
   atoll: string;
@@ -13,25 +13,69 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/a
 
 class ApiClient {
   private baseUrl: string;
-  private token: string | null = null;
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
+  private isRefreshing = false;
+  private refreshPromise: Promise<any> | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    // In a real app, get token from secure storage (httpOnly cookie preferred)
+    // In a real app, get tokens from secure storage (httpOnly cookie preferred)
     if (typeof window !== "undefined") {
-      this.token = localStorage.getItem("auth_token");
+      this.accessToken = localStorage.getItem("auth_token");
+      this.refreshToken = localStorage.getItem("refresh_token");
     }
   }
 
-  setToken(token: string | null) {
-    this.token = token;
+  setTokens(accessToken: string | null, refreshToken: string | null = null) {
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
     if (typeof window !== "undefined") {
-      if (token) {
-        localStorage.setItem("auth_token", token);
+      if (accessToken) {
+        localStorage.setItem("auth_token", accessToken);
       } else {
         localStorage.removeItem("auth_token");
       }
+      if (refreshToken) {
+        localStorage.setItem("refresh_token", refreshToken);
+      } else {
+        localStorage.removeItem("refresh_token");
+      }
     }
+  }
+
+  // For backward compatibility
+  setToken(token: string | null) {
+    this.setTokens(token, this.refreshToken);
+  }
+
+  private async refreshTokens(): Promise<{ access_token: string; refresh_token: string }> {
+    if (!this.refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refresh_token: this.refreshToken,
+      }),
+      credentials: "include",
+      mode: "cors",
+    });
+
+    if (!response.ok) {
+      // If refresh fails, clear tokens and redirect to login
+      this.setTokens(null, null);
+      window.location.href = "/login";
+      throw new Error("Session expired. Please login again.");
+    }
+
+    const data = await response.json();
+    this.setTokens(data.access_token, data.refresh_token);
+    return data;
   }
 
   private async request<T>(
@@ -45,7 +89,7 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: HeadersInit = {
       "Content-Type": "application/json",
-      ...(this.token && { Authorization: `Bearer ${this.token}` }),
+      ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` }),
       ...options.headers,
     };
 
@@ -60,7 +104,7 @@ class ApiClient {
     } catch (error: unknown) {
       // Handle network errors (server not running, CORS, etc.)
       let errorMessage = "Failed to connect to the API server";
-      
+
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (error instanceof TypeError) {
@@ -71,15 +115,45 @@ class ApiClient {
         const errorObj = error as Record<string, unknown>;
         errorMessage = String(errorObj.message || errorObj.toString() || "Unknown network error");
       }
-      
+
       const networkError: ApiError = {
         type: "network_error",
         title: "Network error",
         status: 0,
         detail: `${errorMessage}. Please ensure the API server is running at ${this.baseUrl} and CORS is properly configured.`,
       };
-      
+
       throw networkError;
+    }
+
+    // Handle 401 Unauthorized - try to refresh token automatically
+    if (response.status === 401 && this.refreshToken && !(options.headers as any)?.["X-Skip-Refresh"]) {
+      try {
+        // Prevent multiple concurrent refresh attempts
+        if (this.isRefreshing) {
+          await this.refreshPromise;
+        } else {
+          this.isRefreshing = true;
+          this.refreshPromise = this.refreshTokens();
+          await this.refreshPromise;
+          this.isRefreshing = false;
+          this.refreshPromise = null;
+        }
+
+        // Retry the original request with new token
+        return this.request<T>(endpoint, {
+          ...options,
+          headers: {
+            ...options.headers,
+            "X-Skip-Refresh": "true", // Prevent infinite refresh loops
+          },
+        });
+      } catch (refreshError) {
+        this.isRefreshing = false;
+        this.refreshPromise = null;
+        // If refresh fails, the user will be redirected to login
+        throw refreshError;
+      }
     }
 
     if (!response.ok) {
@@ -130,32 +204,38 @@ class ApiClient {
     password: string;
     contact_info?: Record<string, unknown>;
   }) {
-    const result = await this.request<{ access_token: string; token_type: string; employer_id: string }>(
+    const result = await this.request<{
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      employer_id: string;
+    }>(
       "/auth/register",
       {
         method: "POST",
         body: JSON.stringify(data),
       }
     );
-    this.setToken(result.access_token);
+    this.setTokens(result.access_token, result.refresh_token);
     return result;
   }
 
   async login(email: string, password: string) {
     const result = await this.request<{
       access_token: string;
+      refresh_token: string;
       token_type: string;
       employer_id: string;
     }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    this.setToken(result.access_token);
+    this.setTokens(result.access_token, result.refresh_token);
     return result;
   }
 
   logout() {
-    this.setToken(null);
+    this.setTokens(null, null);
   }
 
   // Public job endpoints
@@ -169,7 +249,7 @@ class ApiClient {
     if (params?.q) searchParams.append("q", params.q);
     if (params?.location) searchParams.append("location", params.location);
 
-    return this.request<{ items: Job[]; next_cursor?: string | null }>(
+    return this.request<{ items: JobPublic[]; next_cursor?: string | null }>(
       `/public/jobs?${searchParams.toString()}`
     );
   }
@@ -180,7 +260,7 @@ class ApiClient {
   }
 
   async getPublicJob(jobId: string) {
-    return this.request<Job>(`/public/jobs/${jobId}`);
+    return this.request<JobPublic>(`/public/jobs/${jobId}`);
   }
 
   async applyToJob(jobId: string, data: {
@@ -234,9 +314,8 @@ class ApiClient {
     description_md: string;
     requirements_md?: string;
     location?: string;
-    salary_min?: number;
-    salary_max?: number;
-    currency?: Currency;
+    is_salary_public: boolean;
+    salaries: JobSalary[];
     tags?: string[];
     category_ids?: string[];
   }) {
@@ -251,9 +330,8 @@ class ApiClient {
     description_md: string;
     requirements_md?: string;
     location?: string;
-    salary_min?: number;
-    salary_max?: number;
-    currency?: Currency;
+    is_salary_public?: boolean;
+    salaries?: JobSalary[];
     status?: string;
     tags?: string[];
     category_ids?: string[];

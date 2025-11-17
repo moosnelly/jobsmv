@@ -88,7 +88,7 @@ export function SlideInPanel({
                 )}
                 <button
                   onClick={onClose}
-                  className="icon-button flex-shrink-0 ml-4"
+                  className="icon-button shrink-0 ml-4"
                   aria-label="Close panel"
                 >
                   <XIcon className="w-4 h-4" />

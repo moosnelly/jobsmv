@@ -1,10 +1,16 @@
-from datetime import datetime
-from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, ARRAY, JSON, Enum
+from datetime import datetime, timezone
+from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, ARRAY, JSON, Enum, Boolean, DECIMAL
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
 
 from app.db.base import Base
+
+
+# Supported currencies for job salaries
+class SupportedCurrency(str, Enum):
+    MVR = "MVR"
+    USD = "USD"
 
 
 class Employer(Base):
@@ -38,6 +44,21 @@ class Category(Base):
     job_categories = relationship("JobCategory", back_populates="category")
 
 
+class JobSalary(Base):
+    __tablename__ = "job_salaries"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), nullable=False, index=True)
+    currency = Column(Enum("MVR", "USD", name="supported_currency"), nullable=False)
+    amount_min = Column(DECIMAL(precision=15, scale=2), nullable=True)
+    amount_max = Column(DECIMAL(precision=15, scale=2), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    job = relationship("Job", back_populates="salaries")
+
+
 class Job(Base):
     __tablename__ = "jobs"
 
@@ -47,9 +68,7 @@ class Job(Base):
     description_md = Column(Text, nullable=False)
     requirements_md = Column(Text, nullable=True)
     location = Column(String(255), nullable=True, index=True)
-    salary_min = Column(Integer, nullable=True)
-    salary_max = Column(Integer, nullable=True)
-    currency = Column(String(3), nullable=False, default="MVR")
+    is_salary_public = Column(Boolean, default=True, nullable=False)
     status = Column(
         Enum("draft", "published", "closed", name="job_status"),
         default="draft",
@@ -64,6 +83,7 @@ class Job(Base):
     employer = relationship("Employer", back_populates="jobs")
     job_categories = relationship("JobCategory", back_populates="job", cascade="all, delete-orphan")
     applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
+    salaries = relationship("JobSalary", back_populates="job", cascade="all, delete-orphan")
 
 
 class JobCategory(Base):

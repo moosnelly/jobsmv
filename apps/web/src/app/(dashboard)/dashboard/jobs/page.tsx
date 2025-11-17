@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { JobCard, DashboardShell } from "@jobsmv/ui-tripled";
+import { EmployerJobCard, DashboardShell } from "@jobsmv/ui-tripled";
 import type { Job } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
@@ -84,7 +84,7 @@ export default function DashboardJobsPage() {
             const accentColor = accentColors[index % accentColors.length] as "peach" | "mint" | "lilac" | "blue";
             return (
               <Link key={job.id} href={`/dashboard/jobs/${job.id}/edit`} className="focus-ring">
-                <JobCard job={job} accentColor={accentColor} />
+                <EmployerJobCard job={job} accentColor={accentColor} />
               </Link>
             );
           })}

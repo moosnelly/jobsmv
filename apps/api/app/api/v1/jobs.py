@@ -8,7 +8,8 @@ import uuid
 from app.core.employer import get_current_employer, require_roles
 from app.db.session import get_db
 from app.db.models import Job, Employer, Category, JobCategory
-from app.schemas.job import JobCreate, JobUpdate, JobResponse
+from app.schemas.job import JobCreate, JobUpdate, JobResponse, JobSalaryCreate, SupportedCurrency
+from app.db.models import JobSalary as JobSalaryModel
 from app.schemas.common import CursorPage
 from app.utils.pagination import get_cursor_paginated_results
 
@@ -25,7 +26,7 @@ async def list_jobs(
     db: AsyncSession = Depends(get_db),
 ):
     """List jobs for the current employer."""
-    query = select(Job).options(selectinload(Job.employer)).where(Job.employer_id == employer.id)
+    query = select(Job).options(selectinload(Job.employer), selectinload(Job.salaries)).where(Job.employer_id == employer.id)
 
     if q:
         query = query.where(
@@ -77,20 +78,36 @@ async def create_job(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new job."""
+    # Validate salary requirements
+    if data.is_salary_public and not data.salaries:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one salary entry is required when salary is public",
+        )
+
     job = Job(
         employer_id=employer.id,
         title=data.title,
         description_md=data.description_md,
         requirements_md=data.requirements_md,
         location=data.location,
-        salary_min=data.salary_min,
-        salary_max=data.salary_max,
-        currency=data.currency,
+        is_salary_public=data.is_salary_public,
         tags=data.tags,
         status="draft",
     )
     db.add(job)
     await db.flush()
+
+    # Add salaries
+    if data.salaries:
+        for salary_data in data.salaries:
+            salary = JobSalaryModel(
+                job_id=job.id,
+                currency=salary_data.currency,
+                amount_min=salary_data.amount_min,
+                amount_max=salary_data.amount_max,
+            )
+            db.add(salary)
 
     # Add categories
     if data.category_ids:
@@ -99,7 +116,7 @@ async def create_job(
             db.add(job_category)
 
     await db.commit()
-    await db.refresh(job, ["employer"])
+    await db.refresh(job, ["employer", "salaries"])
 
     # Load categories
     cat_result = await db.execute(
@@ -108,7 +125,7 @@ async def create_job(
         .where(JobCategory.job_id == job.id)
     )
     job.categories = [cat.name for cat in cat_result.scalars().all()]
-    
+
     # Set employer company name for response
     if job.employer:
         job.employer_company_name = job.employer.company_name
@@ -125,7 +142,7 @@ async def get_job(
     """Get a job by ID."""
     result = await db.execute(
         select(Job)
-        .options(selectinload(Job.employer))
+        .options(selectinload(Job.employer), selectinload(Job.salaries))
         .where(and_(Job.id == job_id, Job.employer_id == employer.id))
     )
     job = result.scalar_one_or_none()
@@ -161,7 +178,7 @@ async def update_job(
     """Update a job."""
     result = await db.execute(
         select(Job)
-        .options(selectinload(Job.employer))
+        .options(selectinload(Job.employer), selectinload(Job.salaries))
         .where(and_(Job.id == job_id, Job.employer_id == employer.id))
     )
     job = result.scalar_one_or_none()
@@ -172,10 +189,33 @@ async def update_job(
             detail="Job not found",
         )
 
-    # Update fields
-    update_data = data.model_dump(exclude_unset=True, exclude={"category_ids"})
+    # Validate salary requirements if updating salary visibility
+    if data.is_salary_public is not None and data.is_salary_public and (data.salaries is not None and not data.salaries):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one salary entry is required when salary is public",
+        )
+
+    # Update fields (excluding salaries and category_ids)
+    update_data = data.model_dump(exclude_unset=True, exclude={"salaries", "category_ids"})
     for key, value in update_data.items():
         setattr(job, key, value)
+
+    # Update salaries if provided
+    if data.salaries is not None:
+        # Remove existing salaries
+        await db.execute(
+            select(JobSalaryModel).where(JobSalaryModel.job_id == job.id)
+        )
+        # Add new salaries
+        for salary_data in data.salaries:
+            salary = JobSalaryModel(
+                job_id=job.id,
+                currency=salary_data.currency,
+                amount_min=salary_data.amount_min,
+                amount_max=salary_data.amount_max,
+            )
+            db.add(salary)
 
     # Update categories if provided
     if data.category_ids is not None:
@@ -189,7 +229,7 @@ async def update_job(
             db.add(job_category)
 
     await db.commit()
-    await db.refresh(job, ["employer"])
+    await db.refresh(job, ["employer", "salaries"])
 
     # Load categories
     cat_result = await db.execute(
@@ -198,7 +238,7 @@ async def update_job(
         .where(JobCategory.job_id == job.id)
     )
     job.categories = [cat.name for cat in cat_result.scalars().all()]
-    
+
     # Set employer company name for response (employer already loaded via selectinload)
     if job.employer:
         job.employer_company_name = job.employer.company_name

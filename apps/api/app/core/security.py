@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
-from jose import JWTError, jwt
+from jose import JWTError, jwt, ExpiredSignatureError
 from pathlib import Path
 import structlog
 import bcrypt
@@ -102,15 +102,23 @@ def create_access_token(
     data: dict,
     expires_delta: Optional[timedelta] = None,
 ) -> str:
-    """Create a JWT access token."""
+    """Create a JWT access token with timezone-aware timestamps."""
     to_encode = data.copy()
+    now = datetime.now(timezone.utc)
+
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
-            minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        expire = now + timedelta(
+            hours=settings.JWT_ACCESS_TOKEN_EXPIRE_HOURS  # Changed from minutes to hours
         )
-    to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+
+    to_encode.update({
+        "exp": expire,
+        "iat": now,
+        "nbf": now,  # Not before time
+        "jti": secrets.token_urlsafe(16)  # JWT ID for uniqueness
+    })
     to_encode.update({"aud": settings.JWT_AUD, "iss": settings.JWT_ISS})
 
     private_key, _ = load_jwt_keys()
@@ -120,8 +128,13 @@ def create_access_token(
     return encoded_jwt
 
 
-def verify_token(token: str) -> Optional[dict]:
-    """Verify and decode a JWT token."""
+def verify_token(token: str) -> tuple[bool, Optional[dict], Optional[str]]:
+    """
+    Verify and decode a JWT token.
+
+    Returns:
+        tuple: (is_valid, payload, error_message)
+    """
     try:
         _, public_key = load_jwt_keys()
         payload = jwt.decode(
@@ -131,10 +144,24 @@ def verify_token(token: str) -> Optional[dict]:
             audience=settings.JWT_AUD,
             issuer=settings.JWT_ISS,
         )
-        return payload
+
+        # Check if token is blacklisted (if implemented)
+        jti = payload.get("jti")
+        if jti and is_token_blacklisted(jti):
+            logger.warning("JWT token is blacklisted", jti=jti)
+            return False, None, "Token has been revoked"
+
+        return True, payload, None
+
+    except ExpiredSignatureError as e:
+        logger.warning("JWT token expired", error=str(e))
+        return False, None, "Token has expired"
     except JWTError as e:
         logger.warning("JWT verification failed", error=str(e))
-        return None
+        return False, None, "Token verification failed"
+    except Exception as e:
+        logger.error("Unexpected JWT verification error", error=str(e))
+        return False, None, "Internal authentication error"
 
 
 def create_refresh_token() -> str:
@@ -154,4 +181,26 @@ def verify_refresh_token(plain_token: str, hashed_token: str) -> bool:
     except Exception as e:
         logger.warning("Refresh token verification failed", error=str(e))
         return False
+
+
+# Token Blacklisting (in-memory for now, should be moved to Redis/database in production)
+_blacklisted_tokens = set()
+
+
+def blacklist_token(jti: str) -> None:
+    """Add a JWT token to the blacklist (logout functionality)."""
+    _blacklisted_tokens.add(jti)
+    logger.info("Token blacklisted", jti=jti)
+
+
+def is_token_blacklisted(jti: str) -> bool:
+    """Check if a JWT token is blacklisted."""
+    return jti in _blacklisted_tokens
+
+
+def clear_expired_blacklisted_tokens() -> None:
+    """Clear expired tokens from blacklist (should be called periodically)."""
+    # In a production system, this would check database/redis for expired tokens
+    # For now, we'll keep all blacklisted tokens until restart
+    pass
 
