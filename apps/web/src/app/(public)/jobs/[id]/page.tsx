@@ -43,24 +43,6 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<JobPublic | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const formatSalary = (job: Job) => {
-    if (!job.salary_min && !job.salary_max) return null;
-
-    const symbol = job.currency === "USD" ? "$" : "ރ";
-    const min = job.salary_min;
-    const max = job.salary_max;
-
-    if (min && max) {
-      return `${symbol}${min.toLocaleString()} - ${symbol}${max.toLocaleString()}`;
-    }
-    if (min) {
-      return `${symbol}${min.toLocaleString()}`;
-    }
-    if (max) {
-      return `${symbol}${max.toLocaleString()}`;
-    }
-    return null;
-  };
 
   useEffect(() => {
     async function loadJob() {

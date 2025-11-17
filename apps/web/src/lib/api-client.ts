@@ -243,11 +243,17 @@ class ApiClient {
     cursor?: string;
     q?: string;
     location?: string;
+    salary_min?: number;
+    salary_max?: number;
+    salary_currency?: "MVR" | "USD";
   }) {
     const searchParams = new URLSearchParams();
     if (params?.cursor) searchParams.append("cursor", params.cursor);
     if (params?.q) searchParams.append("q", params.q);
     if (params?.location) searchParams.append("location", params.location);
+    if (params?.salary_min !== undefined) searchParams.append("salary_min", params.salary_min.toString());
+    if (params?.salary_max !== undefined) searchParams.append("salary_max", params.salary_max.toString());
+    if (params?.salary_currency) searchParams.append("salary_currency", params.salary_currency);
 
     return this.request<{ items: JobPublic[]; next_cursor?: string | null }>(
       `/public/jobs?${searchParams.toString()}`

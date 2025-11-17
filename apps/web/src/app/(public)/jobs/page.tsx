@@ -3,8 +3,28 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { JobCard, FiltersPanel } from "@jobsmv/ui-tripled";
-import type { JobPublic, Category } from "@jobsmv/types";
+import type { JobPublic, Category, SalaryCurrency } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
+
+/**
+ * Currency Filter Flow Documentation (✅ FIXED)
+ *
+ * 1. UI Selection: User selects MVR/USD from currency dropdown in FiltersPanel component
+ * 2. State Management: Selected currency stored in component state as SalaryCurrency type
+ * 3. API Serialization: Currency passed as 'salary_currency' query param to getPublicJobs()
+ * 4. Backend Processing: FastAPI endpoint accepts salary_currency param and filters jobs
+ * 5. Database Query: Jobs filtered to show only those with at least one salary in selected currency
+ *
+ * Expected Behavior (✅ IMPLEMENTED):
+ * - No currency selected → Show all jobs (salary_currency not sent to API)
+ * - MVR selected → Show only jobs with MVR salaries
+ * - USD selected → Show only jobs with USD salaries
+ *
+ * Implementation Details:
+ * - FiltersPanel component includes currency dropdown with "All Currencies", "MVR", "USD" options
+ * - Backend uses subquery to find jobs with salaries in the selected currency
+ * - Type-safe with SalaryCurrency type alias for consistency across frontend/backend
+ */
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobPublic[]>([]);
@@ -14,6 +34,7 @@ export default function JobsPage() {
     category?: string;
     location?: string;
     search?: string;
+    currency?: SalaryCurrency;
   }>({});
 
   useEffect(() => {
@@ -38,6 +59,7 @@ export default function JobsPage() {
     category?: string;
     location?: string;
     search?: string;
+    currency?: SalaryCurrency;
   }) => {
     setFilters(newFilters);
     setLoading(true);
@@ -45,6 +67,7 @@ export default function JobsPage() {
       const jobsData = await apiClient.getPublicJobs({
         q: newFilters.search,
         location: newFilters.location,
+        salary_currency: newFilters.currency,
       });
       setJobs(jobsData.items);
     } catch (error) {
@@ -82,6 +105,7 @@ export default function JobsPage() {
                 { value: "new-york", label: "New York, NY" },
                 { value: "san-francisco", label: "San Francisco, CA" },
               ]}
+              selectedCurrency={filters.currency}
               onFilterChange={handleFilterChange}
             />
           </div>

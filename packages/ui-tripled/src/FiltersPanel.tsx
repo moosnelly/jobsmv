@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import type { SalaryCurrency } from "@jobsmv/types";
 
 export interface FilterOption {
   value: string;
@@ -10,10 +11,13 @@ export interface FilterOption {
 export interface FiltersPanelProps {
   categories?: FilterOption[];
   locations?: FilterOption[];
+  currencies?: FilterOption[];
+  selectedCurrency?: SalaryCurrency;
   onFilterChange?: (filters: {
     category?: string;
     location?: string;
     search?: string;
+    currency?: SalaryCurrency;
   }) => void;
   className?: string;
 }
@@ -21,15 +25,20 @@ export interface FiltersPanelProps {
 export function FiltersPanel({
   categories = [],
   locations = [],
+  currencies = [],
+  selectedCurrency,
   onFilterChange,
   className = "",
 }: FiltersPanelProps) {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedCurrencyState, setSelectedCurrencyState] = useState<SalaryCurrency | "">(
+    selectedCurrency || ""
+  );
 
   const handleFilterChange = (
-    type: "search" | "category" | "location",
+    type: "search" | "category" | "location" | "currency",
     value: string
   ) => {
     if (type === "search") {
@@ -38,12 +47,15 @@ export function FiltersPanel({
       setSelectedCategory(value);
     } else if (type === "location") {
       setSelectedLocation(value);
+    } else if (type === "currency") {
+      setSelectedCurrencyState(value as SalaryCurrency | "");
     }
 
     onFilterChange?.({
       search: type === "search" ? value : search,
       category: type === "category" ? value : selectedCategory,
       location: type === "location" ? value : selectedLocation,
+      currency: type === "currency" ? (value as SalaryCurrency) : selectedCurrencyState || undefined,
     });
   };
 
@@ -115,6 +127,24 @@ export function FiltersPanel({
             </select>
           </div>
         )}
+        <div>
+          <label
+            htmlFor="currency"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Salary Currency
+          </label>
+          <select
+            id="currency"
+            value={selectedCurrencyState}
+            onChange={(e) => handleFilterChange("currency", e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+          >
+            <option value="">Any</option>
+            <option value="MVR">MVR</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
 from app.db.session import get_db
-from app.db.models import Job, Category, JobCategory, Employer
+from app.db.models import Job, Category, JobCategory, Employer, JobSalary
 from sqlalchemy.orm import selectinload
 from app.schemas.job import JobResponse, JobPublicResponse
 from app.schemas.application import ApplicationCreate, ApplicationResponse
@@ -172,9 +172,20 @@ async def list_public_jobs(
     cursor: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
     location: Optional[str] = Query(None),
+    salary_min: Optional[float] = Query(None),
+    salary_max: Optional[float] = Query(None),
+    salary_currency: Optional[str] = Query(None, regex="^(MVR|USD)$"),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all published jobs (public endpoint)."""
+    """
+    List all published jobs (public endpoint).
+
+    Filtering behavior:
+    - Currency filtering: If salary_currency is provided, shows only jobs that have at least one salary in that currency
+    - Salary range filtering: If salary_min/salary_max are provided, further filters to show only jobs where salaries fall within the range
+    - Combined: When both currency and range are specified, shows jobs that have salaries in the specified currency AND within the specified range
+    - No filters: Shows all jobs regardless of currency or salary
+    """
     query = select(Job).options(selectinload(Job.employer), selectinload(Job.salaries)).where(Job.status == "published")
 
     if q:
@@ -187,6 +198,39 @@ async def list_public_jobs(
 
     if location:
         query = query.where(Job.location.ilike(f"%{location}%"))
+
+    # Currency filtering: if currency is specified, only show jobs that have salaries in that currency
+    if salary_currency:
+        # Find jobs that have salaries in the selected currency
+        jobs_with_currency_subquery = select(JobSalary.job_id).where(
+            JobSalary.currency == salary_currency
+        ).distinct()
+        query = query.where(Job.id.in_(select(jobs_with_currency_subquery.c.job_id)))
+
+    # Salary range filtering: if range is specified, further filter jobs where salaries fall within the range
+    if salary_min is not None and salary_max is not None:
+        # For currency-specific filtering, check salaries in the selected currency (or all currencies if no currency selected)
+        currency_filter = JobSalary.currency == salary_currency if salary_currency else True
+
+        # Subquery to find jobs that have salaries that DON'T match the range
+        non_matching_salaries_subquery = select(JobSalary.job_id).where(
+            and_(
+                currency_filter,
+                # Either amount_min is less than salary_min OR amount_max is greater than salary_max
+                # OR amount_min/amount_max are NULL (which we consider as not matching)
+                or_(
+                    JobSalary.amount_min < salary_min,
+                    JobSalary.amount_max > salary_max,
+                    JobSalary.amount_min.is_(None),
+                    JobSalary.amount_max.is_(None)
+                )
+            )
+        ).subquery()
+
+        # Exclude jobs that have any non-matching salaries
+        query = query.where(
+            ~Job.id.in_(select(non_matching_salaries_subquery.c.job_id))
+        )
 
     # Apply ordering
     query = query.order_by(Job.created_at.desc())

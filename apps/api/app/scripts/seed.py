@@ -352,8 +352,10 @@ async def seed():
                 "description_md": "Provide exceptional spa treatments and wellness services to our guests. Perform various massage techniques, facials, and body treatments. Maintain spa equipment and ensure hygienic standards.",
                 "requirements_md": "- Certified spa therapist qualification\n- 2+ years of spa experience preferred\n- Excellent customer service skills\n- Knowledge of various massage techniques\n- Fluency in English",
                 "location": "South Ari Atoll",
-                "salary_min": 20000,
-                "salary_max": 35000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 20000, "amount_max": 35000}
+                ],
                 "status": "published",
                 "tags": ["spa-therapy", "wellness", "massage", "customer-service"],
                 "categories": ["Hospitality & Tourism"],
@@ -365,8 +367,10 @@ async def seed():
                 "description_md": "Manage front office operations including check-in/check-out, guest services, and staff supervision. Ensure smooth operations and maintain high service standards at our luxury resort.",
                 "requirements_md": "- 4+ years of front office management experience\n- Strong leadership and organizational skills\n- Experience with hotel management systems\n- Excellent communication and interpersonal skills\n- Bachelor's degree preferred",
                 "location": "Ari Atoll",
-                "salary_min": 50000,
-                "salary_max": 75000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 50000, "amount_max": 75000}
+                ],
                 "status": "published",
                 "tags": ["front-office", "guest-services", "hotel-management", "leadership"],
                 "categories": ["Hospitality & Tourism"],
@@ -377,8 +381,10 @@ async def seed():
                 "description_md": "Lead water sports activities including diving, snorkeling, and marine excursions. Ensure guest safety, maintain equipment, and provide excellent customer experiences.",
                 "requirements_md": "- PADI Divemaster certification or equivalent\n- 3+ years of water sports experience\n- Strong swimming skills and first aid certification\n- Excellent customer service and safety awareness\n- Ability to work in marine environment",
                 "location": "Ari Atoll",
-                "salary_min": 25000,
-                "salary_max": 40000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 25000, "amount_max": 40000}
+                ],
                 "status": "published",
                 "tags": ["water-sports", "diving", "marine-activities", "safety"],
                 "categories": ["Hospitality & Tourism"],
@@ -390,8 +396,10 @@ async def seed():
                 "description_md": "Lead island hopping tours, cultural experiences, and sightseeing excursions. Share knowledge about Maldivian culture, history, and marine life with guests.",
                 "requirements_md": "- 2+ years of tour guiding experience\n- Excellent communication and presentation skills\n- Knowledge of Maldivian culture and history\n- Fluency in English and Dhivehi\n- First aid certification preferred",
                 "location": "North Male Atoll",
-                "salary_min": 18000,
-                "salary_max": 28000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 18000, "amount_max": 28000}
+                ],
                 "status": "published",
                 "tags": ["tour-guiding", "cultural-tours", "customer-service", "dhivehi"],
                 "categories": ["Travel & Tourism"],
@@ -402,8 +410,10 @@ async def seed():
                 "description_md": "Supervise housekeeping operations, maintain cleanliness standards, and manage housekeeping staff. Ensure villas and public areas meet luxury standards.",
                 "requirements_md": "- 3+ years of housekeeping experience with supervisory role\n- Strong organizational and leadership skills\n- Attention to detail and quality standards\n- Experience in luxury hospitality preferred",
                 "location": "North Male Atoll",
-                "salary_min": 22000,
-                "salary_max": 32000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 22000, "amount_max": 32000}
+                ],
                 "status": "published",
                 "tags": ["housekeeping", "supervision", "cleanliness", "luxury-hospitality"],
                 "categories": ["Hospitality & Tourism"],
@@ -415,8 +425,10 @@ async def seed():
                 "description_md": "Develop and implement tourism policies, coordinate with stakeholders, and promote sustainable tourism development. Conduct research and prepare reports on tourism trends.",
                 "requirements_md": "- Bachelor's degree in Tourism, Business, or related field\n- 3+ years of experience in tourism sector\n- Strong analytical and research skills\n- Excellent written and verbal communication\n- Knowledge of sustainable tourism practices",
                 "location": "Male'",
-                "salary_min": 35000,
-                "salary_max": 55000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 35000, "amount_max": 55000}
+                ],
                 "status": "published",
                 "tags": ["policy-development", "sustainable-tourism", "research", "stakeholder-management"],
                 "categories": ["Government Administration"],
@@ -427,8 +439,10 @@ async def seed():
                 "description_md": "Develop marketing strategies to promote Maldives as a tourist destination. Manage digital marketing campaigns, social media, and international tourism promotions.",
                 "requirements_md": "- Bachelor's degree in Marketing, Communications, or related field\n- 3+ years of marketing experience\n- Digital marketing and social media expertise\n- Experience with tourism marketing preferred\n- Fluency in English required",
                 "location": "Male'",
-                "salary_min": 30000,
-                "salary_max": 45000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 30000, "amount_max": 45000}
+                ],
                 "status": "published",
                 "tags": ["digital-marketing", "tourism-promotion", "social-media", "campaign-management"],
                 "categories": ["Government Administration"],
@@ -478,7 +492,7 @@ async def seed():
                 "description_md": "Manage bank branch operations, lead sales teams, ensure regulatory compliance, and provide excellent customer service. Oversee daily operations and staff performance.",
                 "requirements_md": "- 5+ years of banking experience with 2+ years in management\n- Strong leadership and sales skills\n- Knowledge of banking regulations and compliance\n- Bachelor's degree in Finance, Business, or related field\n- Excellent customer service orientation",
                 "location": "Male'",
-                "is_salary_public": False,  # Hidden salary example
+                "is_salary_public": True,  # Make salary public for testing
                 "salaries": [
                     {"currency": "MVR", "amount_min": 70000, "amount_max": 100000},
                     {"currency": "USD", "amount_min": 4500, "amount_max": 6500}

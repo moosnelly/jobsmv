@@ -1,6 +1,7 @@
 // Shared TypeScript types across the monorepo
 
 export type SupportedCurrency = "MVR" | "USD";
+export type SalaryCurrency = SupportedCurrency; // Alias for better semantic clarity
 
 export interface JobSalary {
   id?: string;

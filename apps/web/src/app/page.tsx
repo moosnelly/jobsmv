@@ -33,7 +33,8 @@ export default function HomePage() {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [workLocation, setWorkLocation] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("");
-  const [salaryRange, setSalaryRange] = useState([1200, 20000]);
+  const [salaryRange, setSalaryRange] = useState([0, 100000]);
+  const [salaryCurrency, setSalaryCurrency] = useState<"MVR" | "USD" | "">("");
   const [sortBy, setSortBy] = useState("last_updated");
   
   // Sidebar filter states
@@ -61,6 +62,11 @@ export default function HomePage() {
     try {
       const jobsData = await apiClient.getPublicJobs({
         location: selectedLocation || undefined,
+        ...(salaryRange[0] !== 0 || salaryRange[1] !== 100000 ? {
+          salary_min: salaryRange[0],
+          salary_max: salaryRange[1],
+        } : {}),
+        salary_currency: salaryCurrency || undefined,
       });
       setJobs(jobsData.items || []);
     } catch (error) {
@@ -74,6 +80,11 @@ export default function HomePage() {
         const [jobsData, categoriesData] = await Promise.all([
           apiClient.getPublicJobs({
             location: selectedLocation || undefined,
+            ...(salaryRange[0] !== 0 || salaryRange[1] !== 100000 ? {
+              salary_min: salaryRange[0],
+              salary_max: salaryRange[1],
+            } : {}),
+            salary_currency: salaryCurrency || undefined,
           }),
           apiClient.getCategories(),
         ]);
@@ -93,6 +104,12 @@ export default function HomePage() {
       loadJobs();
     }
   }, [selectedLocation]);
+
+  useEffect(() => {
+    if (!loading) {
+      loadJobs();
+    }
+  }, [salaryRange, salaryCurrency]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,15 +277,31 @@ export default function HomePage() {
               <div className="flex items-center gap-3 px-4 h-10 text-sm text-[var(--dark-header-text)] ml-auto">
                 <label htmlFor="salary-range" className="whitespace-nowrap">Salary range</label>
                 <div className="flex items-center gap-2">
+                  {/* Currency Selector */}
+                  <div className="relative">
+                    <label htmlFor="salary-currency" className="sr-only">Salary currency</label>
+                    <select
+                      id="salary-currency"
+                      value={salaryCurrency}
+                      onChange={(e) => setSalaryCurrency(e.target.value as "MVR" | "USD" | "")}
+                      className="flex items-center gap-2 pl-8 pr-6 h-8 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[12px] text-xs text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
+                    >
+                      <option value="">All Currencies</option>
+                      <option value="MVR">MVR</option>
+                      <option value="USD">USD</option>
+                    </select>
+                    <ChevronDownIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
+                  </div>
+
                   <output htmlFor="salary-range" className="font-semibold" style={{ fontFamily: "var(--font-numeric)" }}>
-                    ${salaryRange[0].toLocaleString()}
+                    {salaryCurrency === "MVR" ? "MVR" : salaryCurrency === "USD" ? "$" : ""}{salaryRange[0].toLocaleString()}
                   </output>
                   <div className="relative w-24">
                     <input
                       type="range"
                       id="salary-range"
-                      min="1000"
-                      max="30000"
+                      min="0"
+                      max="100000"
                       step="100"
                       value={salaryRange[1]}
                       onChange={(e) => setSalaryRange([salaryRange[0], parseInt(e.target.value)])}
@@ -277,7 +310,7 @@ export default function HomePage() {
                     />
                   </div>
                   <output htmlFor="salary-range" className="font-semibold" style={{ fontFamily: "var(--font-numeric)" }}>
-                    ${salaryRange[1].toLocaleString()}
+                    {salaryCurrency === "MVR" ? "MVR" : salaryCurrency === "USD" ? "$" : ""}{salaryRange[1].toLocaleString()}
                   </output>
                 </div>
               </div>
