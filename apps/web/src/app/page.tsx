@@ -17,6 +17,7 @@ import type { Job, Category } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
 import UserDropdown from "@/components/UserDropdown";
+import LocationDropdown from "@/components/LocationDropdown";
 import ProfileSettingsPanel from "@/components/ProfileSettingsPanel";
 import { JobCard } from "@jobsmv/ui-tripled";
 
@@ -29,6 +30,7 @@ export default function HomePage() {
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [workLocation, setWorkLocation] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("");
   const [salaryRange, setSalaryRange] = useState([1200, 20000]);
@@ -55,23 +57,42 @@ export default function HomePage() {
     shiftMethod: false,
   });
 
+  const loadJobs = async () => {
+    try {
+      const jobsData = await apiClient.getPublicJobs({
+        location: selectedLocation || undefined,
+      });
+      setJobs(jobsData.items || []);
+    } catch (error) {
+      console.error("Failed to load jobs:", error);
+    }
+  };
+
   useEffect(() => {
-    async function loadData() {
+    async function loadInitialData() {
       try {
         const [jobsData, categoriesData] = await Promise.all([
-          apiClient.getPublicJobs(),
+          apiClient.getPublicJobs({
+            location: selectedLocation || undefined,
+          }),
           apiClient.getCategories(),
         ]);
         setJobs(jobsData.items || []);
         setCategories(categoriesData || []);
       } catch (error) {
-        console.error("Failed to load jobs:", error);
+        console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
       }
     }
-    loadData();
+    loadInitialData();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      loadJobs();
+    }
+  }, [selectedLocation]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,14 +165,10 @@ export default function HomePage() {
 
             {/* Right Section */}
             <div className="flex items-center gap-3">
-              <button 
-                className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--dark-header-text-muted)] hover:text-[var(--dark-header-text)] transition-colors focus-ring"
-                aria-label="Select location"
-              >
-                <MapPinIcon className="w-4 h-4" aria-hidden="true" />
-                <span className="hidden sm:inline">New York, NY</span>
-                <ChevronDownIcon className="w-4 h-4" aria-hidden="true" />
-              </button>
+              <LocationDropdown
+                selectedLocation={selectedLocation}
+                onChange={setSelectedLocation}
+              />
               <UserDropdown />
               {isAuthenticated() && (
                 <button

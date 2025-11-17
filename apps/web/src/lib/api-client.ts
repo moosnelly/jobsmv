@@ -1,5 +1,14 @@
 import type { Job, Application, Category, Employer, ApiError } from "@jobsmv/types";
 
+export type AtollLocation = {
+  atoll: string;
+  islands: string[];
+};
+
+export type LocationsResponse = {
+  locations: AtollLocation[];
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 class ApiClient {
@@ -163,6 +172,11 @@ class ApiClient {
     return this.request<{ items: Job[]; next_cursor?: string | null }>(
       `/public/jobs?${searchParams.toString()}`
     );
+  }
+
+  async getLocations() {
+    const response = await this.request<LocationsResponse>("/public/locations");
+    return response.locations;
   }
 
   async getPublicJob(jobId: string) {

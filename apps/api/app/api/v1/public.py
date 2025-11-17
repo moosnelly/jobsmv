@@ -9,10 +9,129 @@ from app.db.models import Job, Category, JobCategory, Employer
 from sqlalchemy.orm import selectinload
 from app.schemas.job import JobResponse
 from app.schemas.application import ApplicationCreate, ApplicationResponse
+from app.schemas.location import AtollResponse, LocationResponse
 from app.schemas.common import CursorPage
 from app.utils.pagination import get_cursor_paginated_results
 
 router = APIRouter()
+
+# Maldives locations data - all 26 atolls with major inhabited islands
+MALDIVES_LOCATIONS = [
+    {
+        "atoll": "Haa Alifu",
+        "islands": ["Dhiddhoo", "Hoarafushi", "Ihavandhoo", "Maarandhoo", "Muraidhoo"]
+    },
+    {
+        "atoll": "Haa Dhaalu",
+        "islands": ["Kulhudhuffushi", "Neykurendhoo", "Nolhivaranfaru", "Kurumba", "Hanimaadhoo"]
+    },
+    {
+        "atoll": "Shaviyani",
+        "islands": ["Funadhoo", "Bileefahi", "Feeva", "Maroshi", "Lhaimagu"]
+    },
+    {
+        "atoll": "Noonu",
+        "islands": ["Manadhoo", "Lhoss", "Maafaru", "Magoodhoo", "Henbadhoo"]
+    },
+    {
+        "atoll": "Raa",
+        "islands": ["Ugoofaaru", "Alifushi", "Rasmaadhoo", "Kinolhas", "Vaadhoo"]
+    },
+    {
+        "atoll": "Baa",
+        "islands": ["Eydhafushi", "Thulhaadhoo", "Dharavandhoo", "Kihaadhoo", "Kamadhoo"]
+    },
+    {
+        "atoll": "Lhaviyani",
+        "islands": ["Naifaru", "Hinnavaru", "Kurumba", "Olhuvelifushi", "Maafilaafushi"]
+    },
+    {
+        "atoll": "Kaafu",
+        "islands": ["Male", "Hulhumale", "Thulusdhoo", "Maafushi", "Himmafushi"]
+    },
+    {
+        "atoll": "Alifu Alifu",
+        "islands": ["Rasdhukuramathi", "Maduvvari", "Feridhoo", "Maalhos", "Dhigurah"]
+    },
+    {
+        "atoll": "Alifu Dhaalu",
+        "islands": ["Mahibadhoo", "Kendhoo", "Dhiddhoo", "Rangali", "Omadhoo"]
+    },
+    {
+        "atoll": "Vaavu",
+        "islands": ["Felidhoo", "Thinadhoo", "Fulidhoo", "Keyodhoo"]
+    },
+    {
+        "atoll": "Meemu",
+        "islands": ["Mulaku", "Muli", "Kolhufushi", "Naalaafushi"]
+    },
+    {
+        "atoll": "Faafu",
+        "islands": ["Nilandhoo", "Dharanboodhoo", "Magoodhoo", "Kolamaafushi"]
+    },
+    {
+        "atoll": "Dhaalu",
+        "islands": ["Kudahuvadhoo", "Maaeboodhoo", "Meedhoo", "Rinbudhoo", "Hudhufushi"]
+    },
+    {
+        "atoll": "Thaa",
+        "islands": ["Veymandoo", "Buruni", "Thimarafushi", "Madifushi", "Guraidhoo"]
+    },
+    {
+        "atoll": "Laamu",
+        "islands": ["Fonadhoo", "Maabaidhoo", "Isdhoo", "Hithadhoo"]
+    },
+    {
+        "atoll": "Gaafu Alifu",
+        "islands": ["Vilingili", "Dhaandhoo", "Nilandhoo", "Rathafandhoo"]
+    },
+    {
+        "atoll": "Gaafu Dhaalu",
+        "islands": ["Thinadhoo", "Nadellaa", "Fares-Maathoda"]
+    },
+    {
+        "atoll": "Gnaviyani (Fuvahmulah)",
+        "islands": ["Fuvahmulah"]
+    },
+    {
+        "atoll": "Seenu (Addu Atoll)",
+        "islands": ["Hithadhoo", "Maradhoo", "Feydhoo", "Hulhudhoo", "Meedhoo"]
+    },
+    {
+        "atoll": "Kolhumadulu",
+        "islands": ["Hadhdhunmathi", "Thakandhoo", "Gaadhiffushi", "Maakurathu", "Finey"]
+    },
+    {
+        "atoll": "Maalhosmadulu Uthuru",
+        "islands": ["Himmafushi", "Naifaru", "Kurumba", "Dhiffushi"]
+    },
+    {
+        "atoll": "Maalhosmadulu Dhekunu",
+        "islands": ["Gulhi", "Maafushi", "Gaafaru", "Guraidhoo"]
+    },
+    {
+        "atoll": "Matheerata",
+        "islands": ["Makunudhoo", "Milaidhoo", "Naalaafushi"]
+    },
+    {
+        "atoll": "Mulaku",
+        "islands": ["Mulaku"]
+    },
+    {
+        "atoll": "Nilandhe Atholhu Uthuru",
+        "islands": ["Fohdhoo", "Maafaru", "Himmafushi"]
+    },
+    {
+        "atoll": "Nilandhe Atholhu Dhekunu",
+        "islands": ["Goidhoo", "Meedhoo", "Rakkeeboodhoo"]
+    }
+]
+
+
+@router.get("/locations", response_model=LocationResponse)
+async def get_locations():
+    """Get all Maldives atolls and their inhabited islands."""
+    return {"locations": MALDIVES_LOCATIONS}
 
 
 @router.get("/jobs", response_model=CursorPage[JobResponse])
@@ -117,4 +236,3 @@ async def apply_to_job(
         job_id=job_id,
     )
     return await create_public_application(job_id, application_data, request, db)
-
