@@ -91,13 +91,6 @@ services:
       context: ..
       dockerfile: infra/Dockerfile.web
     container_name: jobsmv-web
-    command: npm run dev
-    volumes:
-      - ../apps/web:/app/apps/web
-      - ../packages:/app/packages
-      - /app/node_modules
-      - /app/apps/web/node_modules
-      - /app/apps/web/.next
     ports:
       - "${WEB_PORT:-3000}:3000"
     environment:

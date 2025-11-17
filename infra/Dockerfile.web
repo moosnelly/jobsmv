@@ -5,8 +5,10 @@ RUN apk add --no-cache curl
 
 WORKDIR /app
 
-# Copy package.json files for all workspaces
-COPY package.json ./
+# Copy root package files
+COPY package.json package-lock.json ./
+
+# Copy all workspace package.json files
 COPY apps/web/package.json ./apps/web/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
@@ -14,21 +16,23 @@ COPY packages/types/package.json ./packages/types/
 COPY packages/config/package.json ./packages/config/
 COPY packages/ui-tripled/package.json ./packages/ui-tripled/
 
-# Copy postinstall script before npm install
-COPY apps/web/scripts ./apps/web/scripts
+# Copy postinstall script
+COPY apps/web/scripts/postinstall.js ./apps/web/scripts/
 
-# Install root and workspace dependencies (postinstall script will skip in Docker)
-RUN DOCKER_BUILD=true npm install --legacy-peer-deps
+# Install all dependencies at workspace root
+RUN npm ci --legacy-peer-deps
 
-# Copy application code
-COPY apps/web ./apps/web
+# Copy source code (excluding node_modules and other unnecessary files)
+COPY apps ./apps
 COPY packages ./packages
 
+# Build the Next.js application
 WORKDIR /app/apps/web
+RUN npm run build
 
 # Expose port
 EXPOSE 3000
 
-# Default command
-CMD ["npm", "run", "dev"]
+# Default command - serve the built application
+CMD ["npm", "start"]
 
