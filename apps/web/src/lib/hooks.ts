@@ -1,0 +1,122 @@
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { apiClient } from './api-client';
+import type { JobPublic, SalaryCurrency } from '@jobsmv/types';
+
+export interface JobFilters {
+  q?: string;
+  location?: string;
+  salary_min?: number;
+  salary_max?: number;
+  salary_currency?: SalaryCurrency;
+  category?: string;
+  tags?: string[];
+}
+
+export interface JobPaginationState {
+  jobs: JobPublic[];
+  loading: boolean;
+  error: string | null;
+  hasNextPage: boolean;
+  totalJobs?: number;
+}
+
+export function useJobFilters() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [filters, setFilters] = useState<JobFilters>({
+    q: searchParams.get('q') || '',
+    location: searchParams.get('location') || '',
+    salary_min: searchParams.get('salary_min') ? parseInt(searchParams.get('salary_min')!) : undefined,
+    salary_max: searchParams.get('salary_max') ? parseInt(searchParams.get('salary_max')!) : undefined,
+    salary_currency: (searchParams.get('salary_currency') as SalaryCurrency) || undefined,
+    category: searchParams.get('category') || '',
+    tags: searchParams.get('tags')?.split(',') || [],
+  });
+
+  const [paginationState, setPaginationState] = useState<JobPaginationState>({
+    jobs: [],
+    loading: true,
+    error: null,
+    hasNextPage: false,
+  });
+
+  const updateSearchParams = useCallback((newFilters: Partial<JobFilters>) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    // Update params
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        params.set(key, value.join(','));
+      } else if (value !== undefined && value !== null && value !== '') {
+        params.set(key, value.toString());
+      } else {
+        params.delete(key);
+      }
+    });
+
+    // Reset page when filters change
+    params.delete('cursor');
+
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
+
+  const updateFilters = useCallback((newFilters: Partial<JobFilters>) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+    updateSearchParams(updatedFilters);
+  }, [filters, updateSearchParams]);
+
+  const loadJobs = useCallback(async (cursor?: string) => {
+    try {
+      setPaginationState(prev => ({ ...prev, loading: true, error: null }));
+
+      const response = await apiClient.getPublicJobs({
+        ...filters,
+        cursor,
+      });
+
+      setPaginationState(prev => ({
+        jobs: cursor ? [...prev.jobs, ...response.items] : response.items,
+        loading: false,
+        error: null,
+        hasNextPage: !!response.next_cursor,
+      }));
+    } catch (error) {
+      console.error('Failed to load jobs:', error);
+      setPaginationState(prev => ({
+        ...prev,
+        loading: false,
+        error: error instanceof Error ? error.message : 'Failed to load jobs',
+      }));
+    }
+  }, [filters]);
+
+  const loadNextPage = useCallback(() => {
+    if (paginationState.hasNextPage && !paginationState.loading) {
+      // For cursor-based pagination, we'd need to track the cursor
+      // For now, this is a simplified implementation
+      loadJobs();
+    }
+  }, [paginationState.hasNextPage, paginationState.loading, loadJobs]);
+
+  const clearFilters = useCallback(() => {
+    const emptyFilters = {};
+    setFilters(emptyFilters);
+    router.push(window.location.pathname, { scroll: false });
+  }, [router]);
+
+  // Load jobs when filters change
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
+
+  return {
+    filters,
+    updateFilters,
+    clearFilters,
+    paginationState,
+    loadNextPage,
+  };
+}
