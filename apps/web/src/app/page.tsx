@@ -284,7 +284,7 @@ export default function HomePage() {
                       id="salary-currency"
                       value={salaryCurrency}
                       onChange={(e) => setSalaryCurrency(e.target.value as "MVR" | "USD" | "")}
-                      className="flex items-center gap-2 pl-8 pr-6 h-8 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[12px] text-xs text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
+                      className="flex items-center gap-2 pl-8 pr-6 h-8 w-auto min-w-0 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[12px] text-xs text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
                     >
                       <option value="">All Currencies</option>
                       <option value="MVR">MVR</option>
