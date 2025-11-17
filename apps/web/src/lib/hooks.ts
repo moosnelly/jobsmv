@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiClient } from './api-client';
 import type { JobPublic, SalaryCurrency } from '@jobsmv/types';
@@ -21,9 +21,10 @@ export interface JobPaginationState {
   totalJobs?: number;
 }
 
-export function useJobFilters() {
+export function useJobFilters(initialState?: Partial<JobPaginationState>) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const hasInitialized = useRef(false);
 
   const [filters, setFilters] = useState<JobFilters>({
     q: searchParams.get('q') || '',
@@ -36,10 +37,10 @@ export function useJobFilters() {
   });
 
   const [paginationState, setPaginationState] = useState<JobPaginationState>({
-    jobs: [],
-    loading: true,
-    error: null,
-    hasNextPage: false,
+    jobs: initialState?.jobs ?? [],
+    loading: initialState?.loading ?? true,
+    error: initialState?.error ?? null,
+    hasNextPage: initialState?.hasNextPage ?? false,
   });
 
   const updateSearchParams = useCallback((newFilters: Partial<JobFilters>) => {
@@ -109,6 +110,16 @@ export function useJobFilters() {
 
   // Load jobs when filters change
   useEffect(() => {
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      const shouldSkipInitialFetch = Boolean(
+        initialState?.jobs && initialState.jobs.length > 0 && initialState.loading === false
+      );
+      if (shouldSkipInitialFetch) {
+        return;
+      }
+    }
+
     loadJobs();
   }, [loadJobs]);
 
