@@ -24,6 +24,8 @@ export interface PaginatedResponse<T> {
   next_cursor?: string | null;
 }
 
+export type Currency = "MVR" | "USD";
+
 export interface Job {
   id: string;
   employer_id: string;

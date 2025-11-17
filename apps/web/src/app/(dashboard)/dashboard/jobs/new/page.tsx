@@ -302,3 +302,34 @@ export default function NewJobPage() {
   );
 }
 
+/*
+ * CURRENCY SELECTOR IMPLEMENTATION SUMMARY
+ * 
+ * This form now supports employer selection of currency (MVR or USD) for job salary ranges.
+ * 
+ * Files modified for end-to-end currency support:
+ * 
+ * BACKEND:
+ * - apps/api/app/db/models.py: Added `currency` column (VARCHAR(3), default='MVR') to Job model
+ * - apps/api/alembic/versions/003_add_currency_to_jobs.py: Migration to add currency column
+ * - apps/api/app/schemas/job.py: Added `currency: Literal["MVR", "USD"] = "MVR"` to JobBase, JobUpdate
+ * - apps/api/app/api/v1/jobs.py: Updated create_job to persist currency field
+ * 
+ * FRONTEND TYPES:
+ * - packages/types/src/index.ts: Added Currency type and currency field to Job interface
+ * - apps/web/src/lib/api-client.ts: Updated createJob and updateJob methods to include currency
+ * 
+ * FRONTEND COMPONENTS:
+ * - apps/web/src/app/(dashboard)/dashboard/jobs/new/page.tsx: Added currency selector (MVR/USD)
+ * - apps/web/src/app/(dashboard)/dashboard/jobs/[id]/edit/page.tsx: Added currency selector
+ * - packages/ui-tripled/src/JobCard.tsx: Currency-aware salary display (ރ for MVR, $ for USD)
+ * - apps/web/src/app/(public)/jobs/[id]/page.tsx: Currency-aware salary display on job detail page
+ * 
+ * BEHAVIOR:
+ * - Default currency is MVR for all new jobs
+ * - Employers can switch between MVR (ރ) and USD ($) when creating/editing jobs
+ * - Job cards and detail pages display the correct currency symbol based on the job's currency field
+ * - No automatic conversion; salary numbers are treated as amounts in the selected currency
+ * - Existing jobs without currency default to MVR via DB migration
+ */
+
