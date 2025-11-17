@@ -22,6 +22,7 @@ export default function EditJobPage() {
     location: "",
     salary_min: "",
     salary_max: "",
+    currency: "MVR" as "MVR" | "USD",
     status: "draft",
     tags: "",
     category_ids: [] as string[],
@@ -48,6 +49,7 @@ export default function EditJobPage() {
           location: jobData.location || "",
           salary_min: jobData.salary_min?.toString() || "",
           salary_max: jobData.salary_max?.toString() || "",
+          currency: jobData.currency || "MVR",
           status: jobData.status,
           tags: jobData.tags?.join(", ") || "",
           category_ids: [],
@@ -75,6 +77,7 @@ export default function EditJobPage() {
         location: formData.location || undefined,
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : undefined,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : undefined,
+        currency: formData.currency,
         status: formData.status,
         tags: formData.tags ? formData.tags.split(",").map((t) => t.trim()) : undefined,
         category_ids: formData.category_ids,
@@ -153,6 +156,48 @@ export default function EditJobPage() {
               <option value="published">Published</option>
               <option value="closed">Closed</option>
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+              Currency
+            </label>
+            <select
+              id="currency"
+              value={formData.currency}
+              onChange={(e) => setFormData({ ...formData, currency: e.target.value as "MVR" | "USD" })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+            >
+              <option value="MVR">MVR (ރ)</option>
+              <option value="USD">USD ($)</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="salary_min" className="block text-sm font-medium text-gray-700">
+                Min Salary
+              </label>
+              <input
+                type="number"
+                id="salary_min"
+                value={formData.salary_min}
+                onChange={(e) => setFormData({ ...formData, salary_min: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="salary_max" className="block text-sm font-medium text-gray-700">
+                Max Salary
+              </label>
+              <input
+                type="number"
+                id="salary_max"
+                value={formData.salary_max}
+                onChange={(e) => setFormData({ ...formData, salary_max: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-4">

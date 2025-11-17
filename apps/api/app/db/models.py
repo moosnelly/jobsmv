@@ -49,6 +49,7 @@ class Job(Base):
     location = Column(String(255), nullable=True, index=True)
     salary_min = Column(Integer, nullable=True)
     salary_max = Column(Integer, nullable=True)
+    currency = Column(String(3), nullable=False, default="MVR")
     status = Column(
         Enum("draft", "published", "closed", name="job_status"),
         default="draft",

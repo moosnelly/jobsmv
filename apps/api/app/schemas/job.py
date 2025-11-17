@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, ConfigDict
 import uuid
 
@@ -11,6 +11,7 @@ class JobBase(BaseModel):
     location: Optional[str] = None
     salary_min: Optional[int] = None
     salary_max: Optional[int] = None
+    currency: Literal["MVR", "USD"] = "MVR"
     tags: Optional[list[str]] = None
 
     model_config = ConfigDict(extra="forbid")
@@ -27,6 +28,7 @@ class JobUpdate(BaseModel):
     location: Optional[str] = None
     salary_min: Optional[int] = None
     salary_max: Optional[int] = None
+    currency: Optional[Literal["MVR", "USD"]] = None
     status: Optional[str] = None
     tags: Optional[list[str]] = None
     category_ids: Optional[list[uuid.UUID]] = None

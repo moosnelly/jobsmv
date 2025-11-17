@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ClockIcon, BookmarkIcon, DollarSignIcon, MapPinIcon, BriefcaseIcon } from "lucide-react";
+import { ClockIcon, BookmarkIcon, MapPinIcon, BriefcaseIcon } from "lucide-react";
 import type { Job } from "@jobsmv/types";
 
 export interface JobCardProps {
@@ -15,6 +15,25 @@ export function JobCard({ job, onClick, className = "", accentColor = "peach" }:
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+  };
+
+  const formatSalary = (job: Job) => {
+    if (!job.salary_min && !job.salary_max) return null;
+
+    const symbol = job.currency === "USD" ? "$" : "ރ";
+    const min = job.salary_min;
+    const max = job.salary_max;
+
+    if (min && max) {
+      return `${symbol}${min.toLocaleString()} – ${symbol}${max.toLocaleString()}`;
+    }
+    if (min) {
+      return `${symbol}${min.toLocaleString()}`;
+    }
+    if (max) {
+      return `${symbol}${max.toLocaleString()}`;
+    }
+    return null;
   };
 
   const accentClass = `job-card--${accentColor}`;
@@ -74,11 +93,10 @@ export function JobCard({ job, onClick, className = "", accentColor = "peach" }:
       {/* Bottom Section - White Background */}
       <div className="job-card__bottom">
         <div className="job-card__info">
-          {job.salary_min && (
+          {formatSalary(job) && (
             <div className="job-card__salary">
-              <DollarSignIcon className="w-4 h-4" />
               <span style={{ fontFamily: "var(--font-numeric)" }}>
-                ${job.salary_min.toLocaleString()}/hr
+                {formatSalary(job)}
               </span>
             </div>
           )}

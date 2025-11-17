@@ -13,6 +13,8 @@ export interface PaginatedResponse<T> {
   next_cursor?: string | null;
 }
 
+export type Currency = "MVR" | "USD";
+
 export interface Job {
   id: string;
   employer_id: string;
@@ -23,6 +25,7 @@ export interface Job {
   location?: string;
   salary_min?: number;
   salary_max?: number;
+  currency: Currency;
   status: "draft" | "published" | "closed";
   categories?: string[];
   tags?: string[];

@@ -1,4 +1,4 @@
-import type { Job, Application, Category, Employer, ApiError } from "@jobsmv/types";
+import type { Job, Application, Category, Employer, ApiError, Currency } from "@jobsmv/types";
 
 export type AtollLocation = {
   atoll: string;
@@ -236,6 +236,7 @@ class ApiClient {
     location?: string;
     salary_min?: number;
     salary_max?: number;
+    currency?: Currency;
     tags?: string[];
     category_ids?: string[];
   }) {
@@ -252,6 +253,7 @@ class ApiClient {
     location?: string;
     salary_min?: number;
     salary_max?: number;
+    currency?: Currency;
     status?: string;
     tags?: string[];
     category_ids?: string[];

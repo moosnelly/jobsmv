@@ -85,6 +85,7 @@ async def create_job(
         location=data.location,
         salary_min=data.salary_min,
         salary_max=data.salary_max,
+        currency=data.currency,
         tags=data.tags,
         status="draft",
     )
