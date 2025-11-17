@@ -186,6 +186,13 @@ class ApiClient {
     return this.request<Employer>("/employers/me");
   }
 
+  async updateEmployer(data: Partial<Employer>) {
+    return this.request<Employer>("/employers/me", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
   // Job endpoints (employer-scoped)
   async getJobs(params?: {
     cursor?: string;
