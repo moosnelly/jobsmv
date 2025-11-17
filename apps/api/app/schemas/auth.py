@@ -19,8 +19,15 @@ class RegisterRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     employer_id: str
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
     model_config = ConfigDict(extra="forbid")
 

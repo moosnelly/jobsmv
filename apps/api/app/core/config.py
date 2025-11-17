@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     JWKS_PUBLIC_KEY_PATH: str = "apps/api/keys/jwt-public.pem"    # File permissions: 644
     JWKS_KID: str = "jobsmv-key-1"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
     # Security
     SECRET_KEY: str = "change-me-in-production"

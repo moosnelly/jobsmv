@@ -6,6 +6,7 @@ import structlog
 import bcrypt
 import os
 import stat
+import secrets
 
 from app.core.config import settings
 
@@ -134,4 +135,23 @@ def verify_token(token: str) -> Optional[dict]:
     except JWTError as e:
         logger.warning("JWT verification failed", error=str(e))
         return None
+
+
+def create_refresh_token() -> str:
+    """Create a random refresh token."""
+    return secrets.token_urlsafe(32)
+
+
+def hash_refresh_token(token: str) -> str:
+    """Hash a refresh token for secure storage."""
+    return bcrypt.hashpw(token.encode("utf-8"), bcrypt.gensalt(rounds=settings.BCRYPT_ROUNDS)).decode("utf-8")
+
+
+def verify_refresh_token(plain_token: str, hashed_token: str) -> bool:
+    """Verify a refresh token against its hash."""
+    try:
+        return bcrypt.checkpw(plain_token.encode("utf-8"), hashed_token.encode("utf-8"))
+    except Exception as e:
+        logger.warning("Refresh token verification failed", error=str(e))
+        return False
 

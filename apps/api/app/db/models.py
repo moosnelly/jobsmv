@@ -22,6 +22,9 @@ class Employer(Base):
     applications = relationship(
         "Application", back_populates="employer", cascade="all, delete-orphan"
     )
+    refresh_tokens = relationship(
+        "RefreshToken", back_populates="employer", cascade="all, delete-orphan"
+    )
 
 
 class Category(Base):
@@ -97,3 +100,17 @@ class Application(Base):
     employer = relationship("Employer", back_populates="applications")
     job = relationship("Job", back_populates="applications")
 
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    employer_id = Column(UUID(as_uuid=True), ForeignKey("employers.id"), nullable=False, index=True)
+    token_hash = Column(String(255), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    revoked = Column(Integer, default=0, nullable=False, index=True)  # 0=active, 1=revoked
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    last_used_at = Column(DateTime, nullable=True)
+
+    # Relationships
+    employer = relationship("Employer", back_populates="refresh_tokens")

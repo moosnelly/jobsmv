@@ -1,14 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import timedelta
+from datetime import timedelta, datetime
 
-from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.security import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+    hash_refresh_token,
+    verify_refresh_token,
+)
 from app.core.config import settings
 from app.db.session import get_db
-from app.db.models import Employer
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.db.models import Employer, RefreshToken
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, RefreshTokenRequest
 from app.utils.rate_limit import check_rate_limit
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
@@ -49,13 +59,26 @@ async def register(
     await db.commit()
     await db.refresh(employer)
 
-    # Create access token
+    # Create tokens
     access_token = create_access_token(
         data={"sub": str(employer.id), "employer_id": str(employer.id), "roles": ["employer_admin"]}
     )
 
+    # Create and store refresh token
+    refresh_token_plain = create_refresh_token()
+    refresh_token_hash = hash_refresh_token(refresh_token_plain)
+
+    refresh_token_db = RefreshToken(
+        employer_id=employer.id,
+        token_hash=refresh_token_hash,
+        expires_at=datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    db.add(refresh_token_db)
+    await db.commit()
+
     return TokenResponse(
         access_token=access_token,
+        refresh_token=refresh_token_plain,
         token_type="bearer",
         employer_id=str(employer.id),
     )
@@ -92,8 +115,106 @@ async def login(
         data={"sub": str(employer.id), "employer_id": str(employer.id), "roles": ["employer_admin"]}
     )
 
+    # Create and store refresh token
+    refresh_token_plain = create_refresh_token()
+    refresh_token_hash = hash_refresh_token(refresh_token_plain)
+
+    refresh_token_db = RefreshToken(
+        employer_id=employer.id,
+        token_hash=refresh_token_hash,
+        expires_at=datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    db.add(refresh_token_db)
+    await db.commit()
+
     return TokenResponse(
         access_token=access_token,
+        refresh_token=refresh_token_plain,
+        token_type="bearer",
+        employer_id=str(employer.id),
+    )
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    data: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Refresh access token using refresh token.
+
+    This endpoint provides token rotation for enhanced security:
+    - Validates the provided refresh token
+    - Issues a new access token
+    - Issues a new refresh token (rotation)
+    - Revokes the old refresh token
+    """
+    # Find all non-expired, non-revoked refresh tokens for verification
+    now = datetime.utcnow()
+    result = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.expires_at > now,
+            RefreshToken.revoked == 0
+        )
+    )
+    all_tokens = result.scalars().all()
+
+    # Find the token that matches the provided refresh token
+    refresh_token_db = None
+    for token in all_tokens:
+        if verify_refresh_token(data.refresh_token, token.token_hash):
+            refresh_token_db = token
+            break
+
+    if not refresh_token_db:
+        logger.warning("Invalid refresh token provided", employer_id=refresh_token_db.employer_id if refresh_token_db else None)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+
+    # Get employer
+    result = await db.execute(
+        select(Employer).where(Employer.id == refresh_token_db.employer_id)
+    )
+    employer = result.scalar_one_or_none()
+
+    if not employer:
+        logger.warning("Refresh token for non-existent employer", employer_id=refresh_token_db.employer_id)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Employer not found",
+        )
+
+    logger.info("Refresh token successfully validated", employer_id=str(employer.id), email=employer.email)
+
+    # Create new access token
+    access_token = create_access_token(
+        data={"sub": str(employer.id), "employer_id": str(employer.id), "roles": ["employer_admin"]}
+    )
+
+    # Rotate refresh token for security (optional but recommended)
+    new_refresh_token_plain = create_refresh_token()
+    new_refresh_token_hash = hash_refresh_token(new_refresh_token_plain)
+
+    # Revoke old token and create new one
+    refresh_token_db.revoked = 1
+
+    new_refresh_token_db = RefreshToken(
+        employer_id=employer.id,
+        token_hash=new_refresh_token_hash,
+        expires_at=datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+
+    db.add(new_refresh_token_db)
+    await db.commit()
+
+    # Update last used timestamp for old token
+    refresh_token_db.last_used_at = datetime.utcnow()
+    await db.commit()
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=new_refresh_token_plain,
         token_type="bearer",
         employer_id=str(employer.id),
     )
