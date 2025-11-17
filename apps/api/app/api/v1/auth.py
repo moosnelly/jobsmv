@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 
 from app.core.security import (
     get_password_hash,
@@ -10,11 +10,14 @@ from app.core.security import (
     create_refresh_token,
     hash_refresh_token,
     verify_refresh_token,
+    verify_token,
+    blacklist_token,
 )
 from app.core.config import settings
 from app.db.session import get_db
 from app.db.models import Employer, RefreshToken
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, RefreshTokenRequest
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, RefreshTokenRequest, LogoutRequest
+from app.core.employer import get_current_employer
 from app.utils.rate_limit import check_rate_limit
 import structlog
 
@@ -149,7 +152,7 @@ async def refresh_token(
     - Revokes the old refresh token
     """
     # Find all non-expired, non-revoked refresh tokens for verification
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     result = await db.execute(
         select(RefreshToken).where(
             RefreshToken.expires_at > now,
@@ -202,7 +205,7 @@ async def refresh_token(
     new_refresh_token_db = RefreshToken(
         employer_id=employer.id,
         token_hash=new_refresh_token_hash,
-        expires_at=datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
+        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
     )
 
     db.add(new_refresh_token_db)
@@ -218,4 +221,43 @@ async def refresh_token(
         token_type="bearer",
         employer_id=str(employer.id),
     )
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    request: Request,
+    logout_data: LogoutRequest = None,  # Optional body for future extensions
+    employer: Employer = Depends(get_current_employer),
+):
+    """
+    Logout by blacklisting the current access token.
+
+    This prevents the token from being used again until it expires.
+    Refresh tokens remain valid until they expire or are explicitly revoked.
+    """
+    # Extract token from Authorization header
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization header",
+        )
+
+    token = auth_header[7:]  # Remove "Bearer " prefix
+
+    # Verify token and extract JTI for blacklisting
+    is_valid, payload, error_message = verify_token(token)
+    if not is_valid or payload is None:
+        # Token is already invalid, but we'll still return success
+        logger.info("Logout attempted with invalid token", employer_id=str(employer.id))
+        return
+
+    jti = payload.get("jti")
+    if jti:
+        blacklist_token(jti)
+        logger.info("Token successfully blacklisted", employer_id=str(employer.id), jti=jti)
+    else:
+        logger.warning("Token missing JTI claim during logout", employer_id=str(employer.id))
+
+    # Note: In production, you might also want to revoke associated refresh tokens
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardShell } from "@jobsmv/ui-tripled";
-import type { Category } from "@jobsmv/types";
+import type { Category, JobSalary, SupportedCurrency } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
 
@@ -17,8 +17,8 @@ export default function NewJobPage() {
     description_md: "",
     requirements_md: "",
     location: "",
-    salary_min: "",
-    salary_max: "",
+    is_salary_public: true,
+    salaries: [] as JobSalary[],
     tags: "",
     category_ids: [] as string[],
   });
@@ -40,18 +40,48 @@ export default function NewJobPage() {
     loadCategories();
   }, [isAuthenticated, router]);
 
+  const addSalary = () => {
+    setFormData({
+      ...formData,
+      salaries: [...formData.salaries, { currency: "MVR", amountMin: null, amountMax: null }],
+    });
+  };
+
+  const removeSalary = (index: number) => {
+    setFormData({
+      ...formData,
+      salaries: formData.salaries.filter((_, i) => i !== index),
+    });
+  };
+
+  const updateSalary = (index: number, field: keyof JobSalary, value: any) => {
+    const updatedSalaries = [...formData.salaries];
+    updatedSalaries[index] = { ...updatedSalaries[index], [field]: value };
+    setFormData({
+      ...formData,
+      salaries: updatedSalaries,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Transform salaries from camelCase to snake_case for API
+      const salariesForApi = formData.salaries.map(salary => ({
+        currency: salary.currency,
+        amount_min: salary.amountMin,
+        amount_max: salary.amountMax,
+      }));
+
       await apiClient.createJob({
         title: formData.title,
         description_md: formData.description_md,
         requirements_md: formData.requirements_md || undefined,
         location: formData.location || undefined,
-        salary_min: formData.salary_min ? parseInt(formData.salary_min) : undefined,
-        salary_max: formData.salary_max ? parseInt(formData.salary_max) : undefined,
+        is_salary_public: formData.is_salary_public,
+        salaries: salariesForApi as any,
         tags: formData.tags ? formData.tags.split(",").map((t) => t.trim()) : undefined,
         category_ids: formData.category_ids,
       });
@@ -147,31 +177,93 @@ export default function NewJobPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="salary_min" className="block text-sm font-medium text-gray-700">
-                Min Salary
-              </label>
+          <div>
+            <div className="flex items-center mb-4">
               <input
-                type="number"
-                id="salary_min"
-                value={formData.salary_min}
-                onChange={(e) => setFormData({ ...formData, salary_min: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                type="checkbox"
+                id="is_salary_public"
+                checked={formData.is_salary_public}
+                onChange={(e) => setFormData({ ...formData, is_salary_public: e.target.checked })}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
-            </div>
-            <div>
-              <label htmlFor="salary_max" className="block text-sm font-medium text-gray-700">
-                Max Salary
+              <label htmlFor="is_salary_public" className="ml-2 block text-sm text-gray-700">
+                Show salary on public listing
               </label>
-              <input
-                type="number"
-                id="salary_max"
-                value={formData.salary_max}
-                onChange={(e) => setFormData({ ...formData, salary_max: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-              />
             </div>
+
+            {formData.is_salary_public && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Salary Information
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addSalary}
+                    className="px-3 py-1 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                  >
+                    Add Currency
+                  </button>
+                </div>
+
+                {formData.salaries.length === 0 && (
+                  <p className="text-sm text-red-600">At least one salary entry is required when salary is public.</p>
+                )}
+
+                {formData.salaries.map((salary, index) => (
+                  <div key={index} className="flex items-center gap-4 p-4 border border-gray-200 rounded-md">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Currency
+                      </label>
+                      <select
+                        value={salary.currency}
+                        onChange={(e) => updateSalary(index, "currency", e.target.value as SupportedCurrency)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        required
+                      >
+                        <option value="MVR">MVR</option>
+                        <option value="USD">USD</option>
+                      </select>
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Min Amount
+                      </label>
+                      <input
+                        type="number"
+                        value={salary.amountMin || ""}
+                        onChange={(e) => updateSalary(index, "amountMin", e.target.value ? parseFloat(e.target.value) : null)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        placeholder="Optional"
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Max Amount
+                      </label>
+                      <input
+                        type="number"
+                        value={salary.amountMax || ""}
+                        onChange={(e) => updateSalary(index, "amountMax", e.target.value ? parseFloat(e.target.value) : null)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        placeholder="Optional"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeSalary(index)}
+                      className="mt-6 px-2 py-1 text-sm text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>

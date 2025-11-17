@@ -1,5 +1,16 @@
 // Shared TypeScript types across the monorepo
 
+export type SupportedCurrency = "MVR" | "USD";
+
+export interface JobSalary {
+  id?: string;
+  currency: SupportedCurrency;
+  amountMin: number | null;
+  amountMax: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ApiError {
   type: string;
   title: string;
@@ -21,8 +32,26 @@ export interface Job {
   description_md: string;
   requirements_md?: string;
   location?: string;
-  salary_min?: number;
-  salary_max?: number;
+  is_salary_public: boolean;
+  salaries: JobSalary[];
+  status: "draft" | "published" | "closed";
+  categories?: string[];
+  tags?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JobPublic {
+  id: string;
+  employer_id: string;
+  employer_company_name?: string;
+  title: string;
+  description_md: string;
+  requirements_md?: string;
+  location?: string;
+  is_salary_public: boolean;
+  salary_hidden?: boolean;
+  salaries: JobSalary[];
   status: "draft" | "published" | "closed";
   categories?: string[];
   tags?: string[];

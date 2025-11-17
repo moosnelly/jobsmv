@@ -3,13 +3,44 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Job } from "@jobsmv/types";
+import type { JobPublic } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
+
+function formatSalary(job: JobPublic): string {
+  if (job.salary_hidden) {
+    return "Salary: Negotiable";
+  }
+
+  if (!job.salaries || job.salaries.length === 0) {
+    return "";
+  }
+
+  const salaryStrings = job.salaries.map(salary => {
+    const currency = salary.currency;
+    const min = salary.amountMin;
+    const max = salary.amountMax;
+
+    if (min && max) {
+      return `${currency} ${min.toLocaleString()} - ${max.toLocaleString()}`;
+    } else if (min) {
+      return `${currency} ${min.toLocaleString()}+`;
+    } else if (max) {
+      return `Up to ${currency} ${max.toLocaleString()}`;
+    }
+    return "";
+  }).filter(s => s.length > 0);
+
+  if (salaryStrings.length === 0) {
+    return "";
+  }
+
+  return `Salary: ${salaryStrings.join(" • ")}`;
+}
 
 export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [job, setJob] = useState<Job | null>(null);
+  const [job, setJob] = useState<JobPublic | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,11 +96,14 @@ export default function JobDetailPage() {
             {job.location && (
               <p className="text-gray-600">{job.location}</p>
             )}
-            {job.salary_min && job.salary_max && (
-              <p className="text-lg font-medium text-primary-600 mt-2">
-                ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}
-              </p>
-            )}
+            {(() => {
+              const salaryText = formatSalary(job);
+              return salaryText ? (
+                <p className="text-lg font-medium text-primary-600 mt-2">
+                  {salaryText}
+                </p>
+              ) : null;
+            })()}
           </div>
 
           {job.tags && job.tags.length > 0 && (

@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     JWKS_PRIVATE_KEY_PATH: str = "apps/api/keys/jwt-private.pem"  # File permissions: 600
     JWKS_PUBLIC_KEY_PATH: str = "apps/api/keys/jwt-public.pem"    # File permissions: 644
     JWKS_KID: str = "jobsmv-key-1"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    JWT_ACCESS_TOKEN_EXPIRE_HOURS: int = 8  # Increased from 15 minutes to 8 hours
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
     # Security

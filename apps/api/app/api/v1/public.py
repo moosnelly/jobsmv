@@ -7,13 +7,46 @@ import uuid
 from app.db.session import get_db
 from app.db.models import Job, Category, JobCategory, Employer
 from sqlalchemy.orm import selectinload
-from app.schemas.job import JobResponse
+from app.schemas.job import JobResponse, JobPublicResponse
 from app.schemas.application import ApplicationCreate, ApplicationResponse
 from app.schemas.location import AtollResponse, LocationResponse
 from app.schemas.common import CursorPage
 from app.utils.pagination import get_cursor_paginated_results
 
 router = APIRouter()
+
+
+def job_to_public_response(job: Job) -> JobPublicResponse:
+    """Convert a Job model to JobPublicResponse, respecting salary visibility."""
+    salaries = []
+    salary_hidden = None
+
+    if job.is_salary_public:
+        # Include salaries if public
+        salaries = job.salaries if hasattr(job, 'salaries') else []
+        salary_hidden = False
+    else:
+        # Hide salaries if not public
+        salaries = []
+        salary_hidden = True
+
+    return JobPublicResponse(
+        id=job.id,
+        employer_id=job.employer_id,
+        employer_company_name=getattr(job, 'employer_company_name', getattr(job.employer, 'company_name', None)),
+        title=job.title,
+        description_md=job.description_md,
+        requirements_md=job.requirements_md,
+        location=job.location,
+        is_salary_public=job.is_salary_public,
+        salary_hidden=salary_hidden,
+        salaries=salaries,
+        status=job.status,
+        categories=getattr(job, 'categories', []),
+        tags=job.tags,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
+    )
 
 # Maldives locations data - all 26 atolls with major inhabited islands
 MALDIVES_LOCATIONS = [
@@ -134,7 +167,7 @@ async def get_locations():
     return {"locations": MALDIVES_LOCATIONS}
 
 
-@router.get("/jobs", response_model=CursorPage[JobResponse])
+@router.get("/jobs", response_model=CursorPage[JobPublicResponse])
 async def list_public_jobs(
     cursor: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
@@ -142,7 +175,7 @@ async def list_public_jobs(
     db: AsyncSession = Depends(get_db),
 ):
     """List all published jobs (public endpoint)."""
-    query = select(Job).options(selectinload(Job.employer)).where(Job.status == "published")
+    query = select(Job).options(selectinload(Job.employer), selectinload(Job.salaries)).where(Job.status == "published")
 
     if q:
         query = query.where(
@@ -179,12 +212,12 @@ async def list_public_jobs(
         if job.employer:
             job.employer_company_name = job.employer.company_name
 
-    items = [JobResponse.model_validate(job) for job in jobs]
+    items = [job_to_public_response(job) for job in jobs]
 
     return CursorPage(items=items, next_cursor=next_cursor)
 
 
-@router.get("/jobs/{job_id}", response_model=JobResponse)
+@router.get("/jobs/{job_id}", response_model=JobPublicResponse)
 async def get_public_job(
     job_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
@@ -192,7 +225,7 @@ async def get_public_job(
     """Get a published job by ID (public endpoint)."""
     result = await db.execute(
         select(Job)
-        .options(selectinload(Job.employer))
+        .options(selectinload(Job.employer), selectinload(Job.salaries))
         .where(and_(Job.id == job_id, Job.status == "published"))
     )
     job = result.scalar_one_or_none()
@@ -210,12 +243,12 @@ async def get_public_job(
         .where(JobCategory.job_id == job.id)
     )
     job.categories = [cat.name for cat in cat_result.scalars().all()]
-    
+
     # Set employer company name for response
     if job.employer:
         job.employer_company_name = job.employer.company_name
 
-    return JobResponse.model_validate(job)
+    return job_to_public_response(job)
 
 
 @router.post("/jobs/{job_id}/apply", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)

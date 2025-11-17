@@ -31,3 +31,9 @@ class RefreshTokenRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+
+class LogoutRequest(BaseModel):
+    """Request to logout and blacklist the current access token."""
+    # No fields needed - uses current token from Authorization header
+
+    model_config = ConfigDict(extra="forbid")

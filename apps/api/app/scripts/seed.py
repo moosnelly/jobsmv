@@ -2,7 +2,7 @@
 import asyncio
 from sqlalchemy import select
 from app.db.session import AsyncSessionLocal
-from app.db.models import Employer, Job, Category, JobCategory, Application
+from app.db.models import Employer, Job, Category, JobCategory, Application, JobSalary
 from app.core.security import get_password_hash
 import uuid
 import random
@@ -103,8 +103,11 @@ jobs_data = [
         "description_md": "Lead our luxury resort operations in South Ari Atoll. Oversee guest services, staff management, and ensure exceptional guest experiences. Manage budgets, coordinate with departments, and maintain high service standards.",
         "requirements_md": "- 5+ years of hotel management experience\n- Strong leadership and communication skills\n- Experience with luxury hospitality brands\n- Fluency in English, knowledge of Dhivehi preferred\n- Bachelor's degree in Hospitality Management or related field",
         "location": "South Ari Atoll",
-        "salary_min": 80000,
-        "salary_max": 120000,
+        "is_salary_public": True,
+        "salaries": [
+            {"currency": "MVR", "amount_min": 80000, "amount_max": 120000},
+            {"currency": "USD", "amount_min": 5200, "amount_max": 7800}
+        ],
         "status": "published",
         "tags": ["hotel-management", "luxury-hospitality", "leadership", "guest-services"],
         "categories": ["Hospitality & Tourism"],
@@ -335,8 +338,10 @@ async def seed():
                 "description_md": "Lead our culinary team in creating innovative Maldivian and international cuisine. Manage kitchen operations, menu development, and ensure food safety standards. Work closely with F&B management.",
                 "requirements_md": "- 7+ years of culinary experience with 3+ years in leadership\n- Experience in luxury hospitality\n- Strong knowledge of food safety and hygiene\n- Creative menu development skills\n- Culinary degree or equivalent certification",
                 "location": "South Ari Atoll",
-                "salary_min": 60000,
-                "salary_max": 90000,
+                "is_salary_public": True,
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 60000, "amount_max": 90000}
+                ],
                 "status": "published",
                 "tags": ["culinary", "kitchen-management", "food-safety", "menu-development"],
                 "categories": ["Food & Beverage"],
@@ -473,8 +478,11 @@ async def seed():
                 "description_md": "Manage bank branch operations, lead sales teams, ensure regulatory compliance, and provide excellent customer service. Oversee daily operations and staff performance.",
                 "requirements_md": "- 5+ years of banking experience with 2+ years in management\n- Strong leadership and sales skills\n- Knowledge of banking regulations and compliance\n- Bachelor's degree in Finance, Business, or related field\n- Excellent customer service orientation",
                 "location": "Male'",
-                "salary_min": 70000,
-                "salary_max": 100000,
+                "is_salary_public": False,  # Hidden salary example
+                "salaries": [
+                    {"currency": "MVR", "amount_min": 70000, "amount_max": 100000},
+                    {"currency": "USD", "amount_min": 4500, "amount_max": 6500}
+                ],
                 "status": "published",
                 "tags": ["branch-management", "banking-operations", "leadership", "regulatory-compliance"],
                 "categories": ["Banking & Finance"],
@@ -605,20 +613,48 @@ async def seed():
             job = result.scalar_one_or_none()
 
             if not job:
+                # Handle backward compatibility: convert old salary_min/salary_max to new format
+                if "salaries" in job_data:
+                    salaries_data = job_data["salaries"]
+                    is_salary_public = job_data.get("is_salary_public", True)
+                elif "salary_min" in job_data or "salary_max" in job_data:
+                    # Convert old format to new format
+                    salaries_data = []
+                    if job_data.get("salary_min") or job_data.get("salary_max"):
+                        salaries_data.append({
+                            "currency": "MVR",
+                            "amount_min": job_data.get("salary_min"),
+                            "amount_max": job_data.get("salary_max"),
+                        })
+                    is_salary_public = job_data.get("is_salary_public", True)
+                else:
+                    salaries_data = []
+                    is_salary_public = job_data.get("is_salary_public", True)
+
                 job = Job(
                     id=uuid.uuid4(),
                     employer_id=employer.id,
                     title=job_data["title"],
                     description_md=job_data["description_md"],
-                    requirements_md=job_data["requirements_md"],
-                    location=job_data["location"],
-                    salary_min=job_data["salary_min"],
-                    salary_max=job_data["salary_max"],
+                    requirements_md=job_data.get("requirements_md"),
+                    location=job_data.get("location"),
+                    is_salary_public=is_salary_public,
                     status=job_data["status"],
-                    tags=job_data["tags"],
+                    tags=job_data.get("tags"),
                 )
                 db.add(job)
                 await db.flush()
+
+                # Create salary entries
+                for salary_data in salaries_data:
+                    salary = JobSalary(
+                        id=uuid.uuid4(),
+                        job_id=job.id,
+                        currency=salary_data["currency"],  # Use string value directly
+                        amount_min=salary_data.get("amount_min"),
+                        amount_max=salary_data.get("amount_max"),
+                    )
+                    db.add(salary)
 
                 # Link categories
                 for cat_name in job_data["categories"]:

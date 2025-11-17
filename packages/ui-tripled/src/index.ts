@@ -1,5 +1,5 @@
 // UI-TripleD component wrappers
-export { JobCard } from "./JobCard";
+export { JobCard, EmployerJobCard } from "./JobCard";
 export { DashboardShell } from "./DashboardShell";
 export { FiltersPanel } from "./FiltersPanel";
 export { StatCard } from "./StatCard";
