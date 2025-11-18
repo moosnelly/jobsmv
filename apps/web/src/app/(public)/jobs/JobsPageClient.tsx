@@ -1,26 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  SearchIcon,
-  MapPinIcon,
-  BriefcaseIcon,
-  ClockIcon,
-  ChevronDownIcon,
-  SlidersHorizontalIcon,
-  UserIcon,
-  BellIcon,
-  SettingsIcon,
-} from "lucide-react";
-import Link from "next/link";
+import { SlidersHorizontalIcon } from "lucide-react";
 import type { Category } from "@jobsmv/types";
 import type { JobPaginationState } from "@/lib/hooks";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
 import { useJobFilters } from "@/lib/hooks";
-import UserDropdown from "@/components/UserDropdown";
-import LocationDropdown from "@/components/LocationDropdown";
 import ProfileSettingsPanel from "@/components/ProfileSettingsPanel";
+import Header from "@/components/Header";
 import { JobFiltersPanel } from "@/components/JobFiltersPanel";
 import { JobList } from "@/components/JobList";
 
@@ -74,136 +62,16 @@ export default function JobsPageClient({
 
   return (
     <div className="min-h-screen bg-app">
-      {/* Dark Navigation Header - Same as Home Page */}
-      <header className="bg-[var(--dark-header-bg)] text-[var(--dark-header-text)] border-b border-[var(--dark-header-border)]">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[72px]">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[var(--dark-header-text)] flex items-center justify-center">
-                <BriefcaseIcon className="w-5 h-5 text-[var(--dark-header-bg)]" />
-              </div>
-              <span
-                className="text-lg font-bold"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                JobsMv
-              </span>
-            </Link>
-
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
-              <Link
-                href="/"
-                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
-              >
-                Find job
-              </Link>
-              <Link
-                href="#messages"
-                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
-              >
-                Messages
-              </Link>
-              <Link
-                href="#hiring"
-                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
-              >
-                Hiring
-              </Link>
-              <Link
-                href="#community"
-                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
-              >
-                Community
-              </Link>
-              <Link
-                href="#faq"
-                className="px-3 py-2.5 text-[var(--dark-header-text-muted)] font-medium hover:text-[var(--dark-header-text)] transition-colors focus-ring"
-              >
-                FAQ
-              </Link>
-            </nav>
-
-            {/* Right Section */}
-            <div className="flex items-center gap-3">
-              <LocationDropdown
-                selectedLocation={filters.location || null}
-                onChange={(location) => updateFilters({ location: location || undefined })}
-              />
-              <UserDropdown />
-              {isAuthenticated() && (
-                <button
-                  onClick={() => setShowSettingsPanel(true)}
-                  className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
-                  aria-label="Settings"
-                >
-                  <SettingsIcon className="w-4 h-4" />
-                </button>
-              )}
-              <button
-                className="icon-button !bg-[var(--dark-header-control-bg)] !border-[var(--dark-header-control-border)] text-[var(--dark-header-text)] hover:!bg-[var(--dark-header-control-hover)] focus-ring"
-                aria-label="Notifications"
-              >
-                <BellIcon className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Toolbar - Quick Filters */}
-          <div className="py-3 border-t border-[var(--dark-header-border)]">
-            <div className="flex items-center gap-3 overflow-x-auto">
-              {/* Quick Search */}
-              <div className="flex items-center gap-2 px-4 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] min-w-[200px]">
-                <SearchIcon className="w-4 h-4 text-[var(--dark-header-text-muted)] flex-shrink-0" />
-                <input
-                  type="text"
-                  value={filters.q || ""}
-                  onChange={(e) => updateFilters({ q: e.target.value })}
-                  placeholder="Job title, company, keywords"
-                  aria-label="Search jobs"
-                  className="flex-1 bg-transparent text-[var(--dark-header-text)] placeholder:text-[var(--dark-header-text-muted)] outline-none text-sm focus-ring"
-                />
-              </div>
-
-              {/* Quick Location Filter */}
-              <div className="relative">
-                <label htmlFor="quick-location" className="sr-only">Location</label>
-                <select
-                  id="quick-location"
-                  value={filters.location || ""}
-                  onChange={(e) => updateFilters({ location: e.target.value || undefined })}
-                  className="flex items-center gap-2 pl-10 pr-8 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
-                >
-                  <option value="">Any location</option>
-                  <option value="maldives">Maldives</option>
-                  <option value="remote">Remote</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-                <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
-                <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
-              </div>
-
-              {/* Salary Currency Quick Filter */}
-              <div className="relative">
-                <label htmlFor="quick-currency" className="sr-only">Salary currency</label>
-                <select
-                  id="quick-currency"
-                  value={filters.salary_currency || ""}
-                  onChange={(e) => updateFilters({ salary_currency: e.target.value as any || undefined })}
-                  className="flex items-center gap-2 pl-10 pr-8 h-10 bg-[var(--dark-header-control-bg)] border border-[var(--dark-header-control-border)] rounded-[16px] text-sm text-[var(--dark-header-text)] hover:bg-[var(--dark-header-control-hover)] transition-colors whitespace-nowrap appearance-none focus-ring"
-                >
-                  <option value="">Any currency</option>
-                  <option value="MVR">MVR</option>
-                  <option value="USD">USD</option>
-                </select>
-                <BriefcaseIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
-                <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--dark-header-text-muted)] pointer-events-none" aria-hidden="true" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        showFilters={true}
+        searchQuery={filters.q}
+        onSearchChange={(value) => updateFilters({ q: value })}
+        selectedLocation={filters.location || null}
+        onLocationChange={(location) => updateFilters({ location: location || undefined })}
+        salaryCurrency={filters.salary_currency}
+        onSalaryCurrencyChange={(currency) => updateFilters({ salary_currency: currency || undefined })}
+        onShowSettingsPanel={() => setShowSettingsPanel(true)}
+      />
 
       {/* Main Content */}
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-8">
