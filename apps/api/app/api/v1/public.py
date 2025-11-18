@@ -175,6 +175,8 @@ async def list_public_jobs(
     salary_min: Optional[float] = Query(None),
     salary_max: Optional[float] = Query(None),
     salary_currency: Optional[str] = Query(None, regex="^(MVR|USD)$"),
+    sort_by: Optional[str] = Query("created_at", regex="^(created_at|updated_at)$"),
+    sort_order: Optional[str] = Query("desc", regex="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -257,7 +259,8 @@ async def list_public_jobs(
         )
 
     # Apply ordering
-    query = query.order_by(Job.created_at.desc())
+    sort_column = getattr(Job, sort_by) if sort_by in ['created_at', 'updated_at'] else Job.created_at
+    query = query.order_by(sort_column.desc() if sort_order == "desc" else sort_column.asc())
 
     # Cursor pagination
     jobs, next_cursor = await get_cursor_paginated_results(
