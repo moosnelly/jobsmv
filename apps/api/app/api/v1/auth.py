@@ -152,7 +152,7 @@ async def refresh_token(
     - Revokes the old refresh token
     """
     # Find all non-expired, non-revoked refresh tokens for verification
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     result = await db.execute(
         select(RefreshToken).where(
             RefreshToken.expires_at > now,
@@ -205,7 +205,7 @@ async def refresh_token(
     new_refresh_token_db = RefreshToken(
         employer_id=employer.id,
         token_hash=new_refresh_token_hash,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
+        expires_at=datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
     )
 
     db.add(new_refresh_token_db)

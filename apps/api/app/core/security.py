@@ -104,7 +104,8 @@ def create_access_token(
 ) -> str:
     """Create a JWT access token with timezone-aware timestamps."""
     to_encode = data.copy()
-    now = datetime.now(timezone.utc)
+    # Always use UTC to avoid timezone issues
+    now = datetime.utcnow()
 
     if expires_delta:
         expire = now + expires_delta
