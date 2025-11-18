@@ -83,6 +83,7 @@ export default function ProfileSettingsPanel({
       isOpen={isOpen}
       onClose={handleClose}
       title="Profile Settings"
+      panelTestId="profile-settings-panel"
     >
       {loading ? (
         <div className="flex items-center justify-center py-12">
