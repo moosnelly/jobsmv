@@ -222,7 +222,7 @@ export default function JobsPageClient({
             </div>
 
             {/* Comprehensive Filters Panel */}
-            <div className="sticky top-[200px]">
+            <div className="sticky top-[200px] mt-6">
               <JobFiltersPanel
                 filters={filters}
                 onFiltersChange={updateFilters}

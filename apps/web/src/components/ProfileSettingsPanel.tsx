@@ -73,7 +73,10 @@ export default function ProfileSettingsPanel({
     onClose();
   };
 
-  if (!isOpen) return null;
+  // Don't render the panel if it's not open or if user is not authenticated
+  if (!isOpen || !isAuthed) {
+    return null;
+  }
 
   return (
     <SlideInPanel

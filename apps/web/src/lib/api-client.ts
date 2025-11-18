@@ -17,6 +17,7 @@ class ApiClient {
   private refreshToken: string | null = null;
   private isRefreshing = false;
   private refreshPromise: Promise<any> | null = null;
+  private tokenExpiry: number | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -24,12 +25,18 @@ class ApiClient {
     if (typeof window !== "undefined") {
       this.accessToken = localStorage.getItem("auth_token");
       this.refreshToken = localStorage.getItem("refresh_token");
+      // Initialize token expiry from stored token
+      if (this.accessToken) {
+        this.tokenExpiry = this.getTokenExpiry(this.accessToken);
+      }
     }
   }
 
   setTokens(accessToken: string | null, refreshToken: string | null = null) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
+    this.tokenExpiry = accessToken ? this.getTokenExpiry(accessToken) : null;
+
     if (typeof window !== "undefined") {
       if (accessToken) {
         localStorage.setItem("auth_token", accessToken);
@@ -47,6 +54,25 @@ class ApiClient {
   // For backward compatibility
   setToken(token: string | null) {
     this.setTokens(token, this.refreshToken);
+  }
+
+  private getTokenExpiry(token: string): number | null {
+    try {
+      // Decode JWT payload (base64url decode)
+      const payload = token.split('.')[1];
+      const decodedPayload = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      return decodedPayload.exp ? decodedPayload.exp * 1000 : null; // Convert to milliseconds
+    } catch (error) {
+      console.warn('Failed to decode token expiry:', error);
+      return null;
+    }
+  }
+
+  private isTokenExpiringSoon(): boolean {
+    if (!this.tokenExpiry) return false;
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000; // Refresh if token expires within 5 minutes
+    return (this.tokenExpiry - now) < fiveMinutes;
   }
 
   private async refreshTokens(): Promise<{ access_token: string; refresh_token: string }> {
@@ -84,6 +110,17 @@ class ApiClient {
   ): Promise<T> {
     if (typeof window === "undefined") {
       throw new Error("API client can only be used in the browser");
+    }
+
+    // Proactively refresh token if it's expiring soon
+    if (this.accessToken && this.refreshToken && this.isTokenExpiringSoon()) {
+      try {
+        await this.refreshTokens();
+      } catch (error) {
+        console.warn('Proactive token refresh failed:', error);
+        // Continue with the request even if proactive refresh fails
+        // The reactive refresh logic will handle it if needed
+      }
     }
 
     const url = `${this.baseUrl}${endpoint}`;

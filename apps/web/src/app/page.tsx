@@ -344,7 +344,7 @@ export default function HomePage() {
             </div>
 
             {/* Filters */}
-            <div className="sticky top-[200px] bg-surface rounded-card p-5 shadow-card border border-subtle">
+            <div className="sticky top-[200px] mt-6 bg-surface rounded-card p-5 shadow-card border border-subtle">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-primary" style={{ fontFamily: "var(--font-display)" }}>
                   Filters

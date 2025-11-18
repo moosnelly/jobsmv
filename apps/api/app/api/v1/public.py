@@ -197,7 +197,31 @@ async def list_public_jobs(
         )
 
     if location:
-        query = query.where(Job.location.ilike(f"%{location}%"))
+        if location.lower() == "maldives":
+            # "maldives" matches all jobs since all current jobs are in Maldives
+            # In the future, this could be filtered by country if we add international jobs
+            pass  # No additional filtering needed - show all jobs
+        elif location.lower() == "remote":
+            # Remote jobs - look for "remote" in location, title, or description
+            query = query.where(
+                or_(
+                    Job.location.ilike("%remote%"),
+                    Job.title.ilike("%remote%"),
+                    Job.description_md.ilike("%remote%")
+                )
+            )
+        elif location.lower() == "hybrid":
+            # Hybrid jobs - look for "hybrid" in location, title, or description
+            query = query.where(
+                or_(
+                    Job.location.ilike("%hybrid%"),
+                    Job.title.ilike("%hybrid%"),
+                    Job.description_md.ilike("%hybrid%")
+                )
+            )
+        else:
+            # Specific location search (e.g., "Male'", "Ari Atoll")
+            query = query.where(Job.location.ilike(f"%{location}%"))
 
     # Currency filtering: if currency is specified, only show jobs that have salaries in that currency
     if salary_currency:
