@@ -10,6 +10,7 @@ export interface SlideInPanelProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  panelTestId?: string;
 }
 
 export function SlideInPanel({
@@ -18,6 +19,7 @@ export function SlideInPanel({
   title,
   children,
   className = "",
+  panelTestId = "slide-in-panel",
 }: SlideInPanelProps) {
   useEffect(() => {
     if (isOpen) {
@@ -55,7 +57,7 @@ export function SlideInPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -68,10 +70,11 @@ export function SlideInPanel({
               duration: 0.3,
               ease: "easeInOut",
             }}
-            className={`fixed inset-y-0 right-0 z-[60] w-full max-w-md bg-white shadow-lg border-l border-gray-200 ${className}`}
+            className={`fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-lg border-l border-gray-200 ${className}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? "slide-panel-title" : undefined}
+            data-testid={panelTestId}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex h-full flex-col">

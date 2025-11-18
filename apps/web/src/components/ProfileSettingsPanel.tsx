@@ -73,13 +73,12 @@ export default function ProfileSettingsPanel({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <SlideInPanel
       isOpen={isOpen}
       onClose={handleClose}
       title="Profile Settings"
+      panelTestId="profile-settings-panel"
     >
       {loading ? (
         <div className="flex items-center justify-center py-12">
