@@ -16,8 +16,8 @@ import {
   BarChart3Icon,
 } from "lucide-react";
 import type { Employer } from "@jobsmv/types";
-import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
+import { useEmployer } from "@/hooks/useEmployerData";
 
 export interface EmployerDashboardLayoutProps {
   children: React.ReactNode;
@@ -42,21 +42,21 @@ const navigation: NavItem[] = [
   },
   {
     label: "My Jobs",
-    href: "/employer/dashboard/jobs",
+    href: "/employer/jobs",
     icon: BriefcaseIcon,
-    activePattern: /^\/employer\/dashboard\/jobs/,
+    activePattern: /^\/employer\/jobs/,
   },
   {
     label: "Applicants",
-    href: "/employer/dashboard/applicants",
+    href: "/employer/applicants",
     icon: UsersIcon,
-    activePattern: /^\/employer\/dashboard\/applicants/,
+    activePattern: /^\/employer\/applicants/,
   },
   {
     label: "Profile",
-    href: "/employer/dashboard/profile",
+    href: "/employer/profile",
     icon: UserIcon,
-    activePattern: /^\/employer\/dashboard\/profile/,
+    activePattern: /^\/employer\/profile/,
   },
 ];
 
@@ -69,32 +69,15 @@ export function EmployerDashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, logout } = useAuth();
-  const [employer, setEmployer] = useState<Employer | null>(null);
+  const { employer, loading } = useEmployer();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push("/login");
       return;
     }
-
-    async function loadEmployer() {
-      try {
-        const employerData = await apiClient.getCurrentEmployer();
-        setEmployer(employerData);
-      } catch (error) {
-        console.error("Failed to load employer:", error);
-        if ((error as any).status === 401) {
-          logout();
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadEmployer();
-  }, [isAuthenticated, router, logout]);
+  }, [isAuthenticated, router]);
 
   const handleLogout = () => {
     logout();
@@ -240,7 +223,7 @@ export function EmployerDashboardLayout({
 
                 {/* Quick actions */}
                 <Link
-                  href="/dashboard/jobs/new"
+                  href="/employer/jobs/new"
                   className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-[var(--cta-on-cta)] bg-[var(--cta-solid)] hover:bg-[var(--cta-solid-hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--cta-solid)]"
                 >
                   <PlusIcon className="w-4 h-4 mr-2" />
