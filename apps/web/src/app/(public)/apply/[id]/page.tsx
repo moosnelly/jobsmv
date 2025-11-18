@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import type { Job } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
 
-export default function ApplyPage() {
-  const params = useParams();
+interface ApplyPageClientProps {
+  jobId: string;
+}
+
+function ApplyPageClient({ jobId }: ApplyPageClientProps) {
   const router = useRouter();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +24,7 @@ export default function ApplyPage() {
   useEffect(() => {
     async function loadJob() {
       try {
-        const jobData = await apiClient.getPublicJob(params.id as string);
+        const jobData = await apiClient.getPublicJob(jobId);
         setJob(jobData);
       } catch (error) {
         console.error("Failed to load job:", error);
@@ -29,18 +32,18 @@ export default function ApplyPage() {
         setLoading(false);
       }
     }
-    if (params.id) {
+    if (jobId) {
       loadJob();
     }
-  }, [params.id]);
+  }, [jobId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      await apiClient.applyToJob(params.id as string, formData);
-      router.push(`/apply/${params.id}/success`);
+      await apiClient.applyToJob(jobId, formData);
+      router.push(`/apply/${jobId}/success`);
     } catch (error) {
       console.error("Failed to submit application:", error);
       alert("Failed to submit application. Please try again.");
@@ -171,6 +174,19 @@ export default function ApplyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Server component wrapper
+export default function ApplyPage({ params }: { params: { id: string } }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg text-gray-600">Loading...</div>
+      </div>
+    }>
+      <ApplyPageClient jobId={params.id} />
+    </Suspense>
   );
 }
 

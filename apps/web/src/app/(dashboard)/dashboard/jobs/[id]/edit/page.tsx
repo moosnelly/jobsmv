@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardShell } from "@jobsmv/ui-tripled";
 import type { Job, Category, JobSalary, SupportedCurrency } from "@jobsmv/types";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
 
-export default function EditJobPage() {
-  const params = useParams();
+interface EditJobPageClientProps {
+  jobId: string;
+}
+
+function EditJobPageClient({ jobId }: EditJobPageClientProps) {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [job, setJob] = useState<Job | null>(null);
@@ -36,7 +39,7 @@ export default function EditJobPage() {
     async function loadData() {
       try {
         const [jobData, categoriesData] = await Promise.all([
-          apiClient.getJob(params.id as string),
+          apiClient.getJob(jobId),
           apiClient.getCategories(),
         ]);
         setJob(jobData);
@@ -65,10 +68,10 @@ export default function EditJobPage() {
         setLoading(false);
       }
     }
-    if (params.id) {
+    if (jobId) {
       loadData();
     }
-  }, [params.id, isAuthenticated, router]);
+  }, [jobId, isAuthenticated, router]);
 
   const addSalary = () => {
     setFormData({
@@ -105,7 +108,7 @@ export default function EditJobPage() {
         amount_max: salary.amountMax,
       }));
 
-      await apiClient.updateJob(params.id as string, {
+      await apiClient.updateJob(jobId, {
         title: formData.title,
         description_md: formData.description_md,
         requirements_md: formData.requirements_md || undefined,
@@ -129,7 +132,7 @@ export default function EditJobPage() {
     if (!confirm("Are you sure you want to delete this job?")) return;
 
     try {
-      await apiClient.deleteJob(params.id as string);
+      await apiClient.deleteJob(jobId);
       router.push("/dashboard/jobs");
     } catch (error) {
       console.error("Failed to delete job:", error);
@@ -386,6 +389,21 @@ export default function EditJobPage() {
         </form>
       </div>
     </DashboardShell>
+  );
+}
+
+// Server component wrapper
+export default function EditJobPage({ params }: { params: { id: string } }) {
+  return (
+    <Suspense fallback={
+      <DashboardShell title="Edit Job">
+        <div className="text-center py-12">
+          <div className="text-lg text-gray-600">Loading job...</div>
+        </div>
+      </DashboardShell>
+    }>
+      <EditJobPageClient jobId={params.id} />
+    </Suspense>
   );
 }
 

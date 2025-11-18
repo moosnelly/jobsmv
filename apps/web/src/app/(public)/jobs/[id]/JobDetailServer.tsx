@@ -1,12 +1,6 @@
-"use cache";
-
 import Link from "next/link";
 import type { JobPublic } from "@jobsmv/types";
 import { getPublicJobServer } from "@/lib/server-api";
-
-export const revalidate = 3600;
-export const fetchCache = "default-cache";
-export const tags = ["jobs"];
 
 function formatSalary(job: JobPublic): string {
   if (job.salary_hidden) {

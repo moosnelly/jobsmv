@@ -30,10 +30,10 @@ interface JobsPageClientProps {
 }
 
 export default function JobsPageClient({
-  initialCategories = [],
+  initialCategories,
   initialPaginationState,
 }: JobsPageClientProps) {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [categories, setCategories] = useState<Category[]>(initialCategories || []);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const { isAuthenticated } = useAuth();
 

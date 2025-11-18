@@ -1,12 +1,6 @@
-"use cache";
-
 import Link from "next/link";
 import { JobCard } from "@jobsmv/ui-tripled";
 import { getPublicJobsServer } from "@/lib/server-api";
-
-export const revalidate = 3600;
-export const fetchCache = "default-cache";
-export const tags = ["jobs"];
 
 const accentColors = ["peach", "mint", "lilac", "blue"] as const;
 

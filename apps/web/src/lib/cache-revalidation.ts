@@ -3,19 +3,19 @@
 import { revalidateTag } from "next/cache";
 
 export async function revalidateJobs() {
-  revalidateTag("jobs");
+  revalidateTag("jobs", "max");
 }
 
 export async function revalidateCategories() {
-  revalidateTag("categories");
+  revalidateTag("categories", "max");
 }
 
 export async function revalidateLocations() {
-  revalidateTag("locations");
+  revalidateTag("locations", "max");
 }
 
 export async function revalidateAllPublicData() {
-  revalidateTag("jobs");
-  revalidateTag("categories");
-  revalidateTag("locations");
+  revalidateTag("jobs", "max");
+  revalidateTag("categories", "max");
+  revalidateTag("locations", "max");
 }

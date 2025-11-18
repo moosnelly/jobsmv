@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   SearchIcon,
   FilterIcon,
@@ -40,6 +40,11 @@ export default function DesignSystemShowcase() {
   const [selectedRadio, setSelectedRadio] = useState("option1");
   const [rangeValue, setRangeValue] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentYear, setCurrentYear] = useState(2025);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <div className="min-h-screen bg-app">
@@ -940,7 +945,7 @@ export default function DesignSystemShowcase() {
           </div>
           <div className="border-t border-subtle mt-8 pt-8 text-center">
             <p className="text-sm text-muted">
-              © {new Date().getFullYear()} JobsMV. All rights reserved.
+              © {currentYear} JobsMV. All rights reserved.
             </p>
           </div>
         </div>
