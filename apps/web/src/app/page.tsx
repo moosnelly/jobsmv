@@ -35,7 +35,8 @@ export default function HomePage() {
   const [experienceLevel, setExperienceLevel] = useState("");
   const [salaryRange, setSalaryRange] = useState([0, 100000]);
   const [salaryCurrency, setSalaryCurrency] = useState<"MVR" | "USD" | "">("");
-  const [sortBy, setSortBy] = useState("last_updated");
+  const [sortBy, setSortBy] = useState<'created_at' | 'updated_at'>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Sidebar filter states
   const [workingSchedule, setWorkingSchedule] = useState({
@@ -58,6 +59,17 @@ export default function HomePage() {
     shiftMethod: false,
   });
 
+  // Toggle sort between newest (created_at) and recently updated (updated_at)
+  const toggleSort = () => {
+    const newSortBy = sortBy === 'created_at' ? 'updated_at' : 'created_at';
+    setSortBy(newSortBy);
+  };
+
+  // Get the current sort label
+  const getSortLabel = () => {
+    return sortBy === 'created_at' ? 'Newest' : 'Recently Updated';
+  };
+
   const loadJobs = async () => {
     try {
       const jobsData = await apiClient.getPublicJobs({
@@ -67,6 +79,8 @@ export default function HomePage() {
           salary_max: salaryRange[1],
         } : {}),
         salary_currency: salaryCurrency || undefined,
+        sort_by: sortBy,
+        sort_order: sortOrder,
       });
       setJobs(jobsData.items || []);
     } catch (error) {
@@ -85,6 +99,8 @@ export default function HomePage() {
               salary_max: salaryRange[1],
             } : {}),
             salary_currency: salaryCurrency || undefined,
+            sort_by: sortBy,
+            sort_order: sortOrder,
           }),
           apiClient.getCategories(),
         ]);
@@ -97,7 +113,7 @@ export default function HomePage() {
       }
     }
     loadInitialData();
-  }, []);
+  }, [sortBy]);
 
   useEffect(() => {
     if (!loading) {
@@ -421,11 +437,12 @@ export default function HomePage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted">Sort by:</span>
-                <button 
+                <button
+                  onClick={toggleSort}
                   className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-[var(--cta-solid)] transition-colors focus-ring"
-                  aria-label="Sort by last updated"
+                  aria-label={`Sort by ${getSortLabel().toLowerCase()}`}
                 >
-                  Last updated
+                  {getSortLabel()}
                   <SlidersHorizontalIcon className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>

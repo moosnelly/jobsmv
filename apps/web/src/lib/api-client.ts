@@ -283,6 +283,8 @@ class ApiClient {
     salary_min?: number;
     salary_max?: number;
     salary_currency?: "MVR" | "USD";
+    sort_by?: "created_at" | "updated_at";
+    sort_order?: "asc" | "desc";
   }) {
     const searchParams = new URLSearchParams();
     if (params?.cursor) searchParams.append("cursor", params.cursor);
@@ -291,6 +293,8 @@ class ApiClient {
     if (params?.salary_min !== undefined) searchParams.append("salary_min", params.salary_min.toString());
     if (params?.salary_max !== undefined) searchParams.append("salary_max", params.salary_max.toString());
     if (params?.salary_currency) searchParams.append("salary_currency", params.salary_currency);
+    if (params?.sort_by) searchParams.append("sort_by", params.sort_by);
+    if (params?.sort_order) searchParams.append("sort_order", params.sort_order);
 
     return this.request<{ items: JobPublic[]; next_cursor?: string | null }>(
       `/public/jobs?${searchParams.toString()}`

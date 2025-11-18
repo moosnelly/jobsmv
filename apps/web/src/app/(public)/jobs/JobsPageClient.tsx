@@ -46,6 +46,17 @@ export default function JobsPageClient({
     loadNextPage,
   } = useJobFilters(initialPaginationState);
 
+  // Toggle sort between newest (created_at) and recently updated (updated_at)
+  const toggleSort = () => {
+    const newSortBy = filters.sort_by === 'created_at' ? 'updated_at' : 'created_at';
+    updateFilters({ sort_by: newSortBy, sort_order: 'desc' });
+  };
+
+  // Get the current sort label
+  const getSortLabel = () => {
+    return filters.sort_by === 'created_at' ? 'Newest' : 'Recently Updated';
+  };
+
   // Load categories only if not provided as initial prop
   useEffect(() => {
     if (categories.length === 0) {
@@ -256,10 +267,11 @@ export default function JobsPageClient({
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted">Sort by:</span>
                 <button
+                  onClick={toggleSort}
                   className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-[var(--cta-solid)] transition-colors focus-ring"
-                  aria-label="Sort by last updated"
+                  aria-label={`Sort by ${getSortLabel().toLowerCase()}`}
                 >
-                  Newest
+                  {getSortLabel()}
                   <SlidersHorizontalIcon className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>

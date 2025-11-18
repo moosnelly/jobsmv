@@ -11,6 +11,8 @@ export interface JobFilters {
   salary_currency?: SalaryCurrency;
   category?: string;
   tags?: string[];
+  sort_by?: 'created_at' | 'updated_at';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface JobPaginationState {
@@ -34,6 +36,8 @@ export function useJobFilters(initialState?: Partial<JobPaginationState>) {
     salary_currency: (searchParams.get('salary_currency') as SalaryCurrency) || undefined,
     category: searchParams.get('category') || '',
     tags: searchParams.get('tags')?.split(',') || [],
+    sort_by: (searchParams.get('sort_by') as 'created_at' | 'updated_at') || 'created_at',
+    sort_order: (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc',
   });
 
   const [paginationState, setPaginationState] = useState<JobPaginationState>({
@@ -107,6 +111,28 @@ export function useJobFilters(initialState?: Partial<JobPaginationState>) {
     setFilters(emptyFilters);
     router.push(window.location.pathname, { scroll: false });
   }, [router]);
+
+  // Sync URL parameters to filters state on initial load
+  useEffect(() => {
+    if (hasInitialized.current) {
+      // Only sync on initial load, not on every searchParams change
+      return;
+    }
+
+    const urlFilters: JobFilters = {
+      q: searchParams.get('q') || '',
+      location: searchParams.get('location') || '',
+      salary_min: searchParams.get('salary_min') ? parseInt(searchParams.get('salary_min')!) : undefined,
+      salary_max: searchParams.get('salary_max') ? parseInt(searchParams.get('salary_max')!) : undefined,
+      salary_currency: (searchParams.get('salary_currency') as SalaryCurrency) || undefined,
+      category: searchParams.get('category') || '',
+      tags: searchParams.get('tags')?.split(',') || [],
+      sort_by: (searchParams.get('sort_by') as 'created_at' | 'updated_at') || 'created_at',
+      sort_order: (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc',
+    };
+
+    setFilters(urlFilters);
+  }, []); // Empty dependency array - only run once on mount
 
   // Load jobs when filters change
   useEffect(() => {
