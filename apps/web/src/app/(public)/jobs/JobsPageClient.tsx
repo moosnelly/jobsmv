@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Category } from "@jobsmv/types";
+import type { JobPaginationState } from "@/lib/hooks";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
 import { useJobFilters } from "@/lib/hooks";
@@ -23,8 +24,16 @@ import ProfileSettingsPanel from "@/components/ProfileSettingsPanel";
 import { JobFiltersPanel } from "@/components/JobFiltersPanel";
 import { JobList } from "@/components/JobList";
 
-export default function JobsPageClient() {
-  const [categories, setCategories] = useState<Category[]>([]);
+interface JobsPageClientProps {
+  initialCategories?: Category[];
+  initialPaginationState?: Partial<JobPaginationState>;
+}
+
+export default function JobsPageClient({
+  initialCategories = [],
+  initialPaginationState,
+}: JobsPageClientProps) {
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -35,20 +44,22 @@ export default function JobsPageClient() {
     clearFilters,
     paginationState,
     loadNextPage,
-  } = useJobFilters();
+  } = useJobFilters(initialPaginationState);
 
-  // Load categories on mount
+  // Load categories only if not provided as initial prop
   useEffect(() => {
-    async function loadCategories() {
-      try {
-        const categoriesData = await apiClient.getCategories();
-        setCategories(categoriesData || []);
-      } catch (error) {
-        console.error("Failed to load categories:", error);
+    if (categories.length === 0) {
+      async function loadCategories() {
+        try {
+          const categoriesData = await apiClient.getCategories();
+          setCategories(categoriesData || []);
+        } catch (error) {
+          console.error("Failed to load categories:", error);
+        }
       }
+      loadCategories();
     }
-    loadCategories();
-  }, []);
+  }, [categories.length]);
 
   return (
     <div className="min-h-screen bg-app">
